@@ -6,11 +6,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import moment from 'moment';
 import 'moment/locale/ko';
+import { FaChevronLeft } from 'react-icons/fa';
 
 const ChatPage = () => {
   const { roomId } = useParams();
   const stompClient = useRef(null);
 
+  const [chatRoomName, setChatRoomName] = useState('');
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [myInfo, setMyInfo] = useState(null);
@@ -33,6 +35,7 @@ const ChatPage = () => {
     }, 100);
   }, [messages]);
 
+  // 채팅 내역 조회
   const fetchChatHistory = async () => {
     try {
       const response = await axios.get(
@@ -43,7 +46,8 @@ const ChatPage = () => {
           },
         }
       );
-      setMessages(response.data.data);
+      setMessages(response.data.data.messages);
+      setChatRoomName(response.data.data.chatRoomName);
     } catch (error) {
       console.error('채팅 내역 조회 실패:', error);
     }
@@ -150,10 +154,16 @@ const ChatPage = () => {
     <div className='flex min-h-screen bg-gray-50'>
       <div className='w-full max-w-3xl mx-auto p-4'>
         {/* 헤더 부분 */}
-        <div className='bg-white rounded-t-lg shadow-sm p-4 border-b'>
-          <h2 className='text-xl font-bold text-gray-800 text-center'>
-            채팅방
-          </h2>
+        <div className='flex items-center relative py-5 bg-white shadow-md rounded-t-lg border-b'>
+          <button
+            onClick={() => navigate(-1)}
+            className='text-gray-600 hover:text-gray-800 absolute left-4'
+          >
+            <FaChevronLeft size={20} />
+          </button>
+          <span className='font-medium flex-1 text-center text-base text-gray-800'>
+            {chatRoomName}
+          </span>
         </div>
 
         {/* 메시지 표시 영역 */}
