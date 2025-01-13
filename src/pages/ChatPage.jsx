@@ -2,10 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { getCookie } from '../utils/CookieUtils';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 const ChatPage = () => {
+  const { roomId } = useParams();
   const stompClient = useRef(null);
 
   const [messages, setMessages] = useState([]);
@@ -55,7 +56,7 @@ const ChatPage = () => {
 
             onConnect: (conn) => {
               console.log('Connected: ' + conn);
-              stompClient.current.subscribe('/sub/1', (message) => {
+              stompClient.current.subscribe(`/sub/${roomId}`, (message) => {
                 console.log('Received: ', JSON.parse(message.body));
                 setMessages((prev) => {
                   return [...prev, JSON.parse(message.body)];
@@ -90,8 +91,11 @@ const ChatPage = () => {
       sendMessage: () => {
         if (text) {
           stompClient.current.publish({
-            destination: '/pub/chat',
-            body: text,
+            destination: `/pub/chat/${roomId}`,
+            body: JSON.stringify({
+              roomId: roomId,
+              message: text,
+            }),
           });
 
           setText('');
