@@ -15,12 +15,29 @@ const ChatPage = () => {
 
   const navigate = useNavigate();
 
+  const fetchChatHistory = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/v1/chat/${roomId}/messages`,
+        {
+          headers: {
+            Authorization: `Bearer ${getCookie('accessToken')}`,
+          },
+        }
+      );
+      setMessages(response.data.data);
+    } catch (error) {
+      console.error('채팅 내역 조회 실패:', error);
+    }
+  };
+
   useEffect(() => {
     fetchMyInfo();
+    fetchChatHistory();
     stompHandler().connect();
 
     return () => stompHandler().disconnect();
-  }, []);
+  }, [roomId]);
 
   const fetchMyInfo = async () => {
     try {
@@ -93,7 +110,6 @@ const ChatPage = () => {
           stompClient.current.publish({
             destination: `/pub/chat/${roomId}`,
             body: JSON.stringify({
-              roomId: roomId,
               message: text,
             }),
           });
@@ -155,7 +171,13 @@ const ChatPage = () => {
 
         {/* 입력 영역 */}
         <div className='bg-white rounded-b-lg shadow-sm p-4 border-t'>
-          <form action='#' method='POST' className='flex gap-2'>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              stompHandler().sendMessage();
+            }}
+            className='flex gap-2'
+          >
             <input
               id='text'
               name='text'
@@ -167,9 +189,8 @@ const ChatPage = () => {
               placeholder='메시지를 입력하세요'
             />
             <button
-              type='button'
+              type='submit'
               className='rounded-full bg-indigo-600 px-6 py-2 text-white font-medium hover:bg-indigo-500 transition-colors'
-              onClick={stompHandler().sendMessage}
             >
               전송
             </button>

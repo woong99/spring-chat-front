@@ -77,9 +77,9 @@ const ChatRoomPage = () => {
       <div className='space-y-2'>
         {chatRooms.map((room) => (
           <button
-            key={room.id}
+            key={room.chatRoomId}
             className='w-full text-left flex items-center justify-between p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow'
-            onClick={() => navigate(`/chat/${room.id}`)}
+            onClick={() => navigate(`/chat/${room.chatRoomId}`)}
           >
             <div>
               <h3 className='font-semibold'>{room.name}</h3>
