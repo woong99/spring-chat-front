@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, Fragment } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { getCookie } from '../utils/CookieUtils';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import moment from 'moment';
+import 'moment/locale/ko';
 
 const ChatPage = () => {
   const { roomId } = useParams();
@@ -14,6 +16,22 @@ const ChatPage = () => {
   const [myInfo, setMyInfo] = useState(null);
 
   const navigate = useNavigate();
+
+  const scrollRef = useRef(null);
+
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      const element = scrollRef.current;
+      const { scrollHeight, clientHeight } = element;
+      element.scrollTop = scrollHeight - clientHeight;
+    }
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+  }, [messages]);
 
   const fetchChatHistory = async () => {
     try {
@@ -76,7 +94,7 @@ const ChatPage = () => {
               stompClient.current.subscribe(`/sub/${roomId}`, (message) => {
                 console.log('Received: ', JSON.parse(message.body));
                 setMessages((prev) => {
-                  return [...prev, JSON.parse(message.body)];
+                  return [JSON.parse(message.body), ...prev];
                 });
               });
             },
@@ -139,34 +157,79 @@ const ChatPage = () => {
         </div>
 
         {/* 메시지 표시 영역 */}
-        <div className='bg-white h-[600px] overflow-y-auto p-4 flex flex-col-reverse'>
-          {[...messages].reverse().map((message, index) => (
-            <div
-              key={index}
-              className={`mb-4 flex flex-col ${
-                message.sender === myInfo.nickname ? 'items-end' : 'items-start'
-              }`}
-            >
-              {message.sender !== myInfo.nickname && (
-                <span className='text-sm text-gray-600 mb-1 ml-2'>
-                  {message.sender}
-                </span>
-              )}
+        <div className='bg-white h-[600px] overflow-y-auto p-4' ref={scrollRef}>
+          <div className='flex flex-col'>
+            {[...messages].reverse().map((message, index, array) => {
+              // 날짜 구분선 표시 여부
+              const showDateDivider =
+                index === 0 ||
+                moment(message.sendAt).format('YYYY-MM-DD') !=
+                  moment(array[index - 1].sendAt).format('YYYY-MM-DD');
 
-              <div className='flex items-end gap-2'>
-                <div
-                  className={`break-all px-4 py-2 text-gray-800 rounded-2xl
-                    ${
+              // 닉네임 표시 여부
+              const isShowNickname =
+                index === 0 ||
+                array[index - 1].sender !== message.sender ||
+                showDateDivider;
+
+              // 시간 표시 여부
+              const isShowTime =
+                index === array.length - 1 ||
+                array[index + 1].sender !== message.sender ||
+                moment(array[index + 1].sendAt).format('HH:mm') !==
+                  moment(message.sendAt).format('HH:mm') ||
+                moment(array[index + 1].sendAt).format('YYYY-MM-DD') !=
+                  moment(message.sendAt).format('YYYY-MM-DD');
+
+              return (
+                <Fragment key={index}>
+                  {showDateDivider && (
+                    <div className='flex justify-center my-4'>
+                      <div className='bg-gray-100 rounded-full px-3 py-1 text-xs text-gray-500'>
+                        {moment(message.sendAt).format('YYYY년 M월 D일 dddd')}
+                      </div>
+                    </div>
+                  )}
+                  <div
+                    className={`mb-1 flex flex-col ${
                       message.sender === myInfo.nickname
-                        ? 'bg-indigo-500 text-white rounded-tr-none'
-                        : 'bg-gray-100 rounded-tl-none'
+                        ? 'items-end'
+                        : 'items-start'
                     }`}
-                >
-                  {message.message}
-                </div>
-              </div>
-            </div>
-          ))}
+                  >
+                    {message.sender !== myInfo.nickname && isShowNickname && (
+                      <span className='text-sm text-gray-600 mb-1 ml-2'>
+                        {message.sender}
+                      </span>
+                    )}
+
+                    <div className='flex items-end gap-2'>
+                      {message.sender === myInfo.nickname && isShowTime && (
+                        <span className='text-xs text-gray-500 mb-1'>
+                          {moment(message.sendAt).format('HH:mm')}
+                        </span>
+                      )}
+                      <div
+                        className={`break-all px-4 py-2 text-gray-800 rounded-2xl
+                          ${
+                            message.sender === myInfo.nickname
+                              ? 'bg-indigo-500 text-white rounded-tr-none'
+                              : 'bg-gray-100 rounded-tl-none'
+                          }`}
+                      >
+                        {message.message}
+                      </div>
+                      {message.sender !== myInfo.nickname && isShowTime && (
+                        <span className='text-xs text-gray-500 mb-1'>
+                          {moment(message.sendAt).format('HH:mm')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Fragment>
+              );
+            })}
+          </div>
         </div>
 
         {/* 입력 영역 */}
