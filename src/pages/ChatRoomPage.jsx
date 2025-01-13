@@ -81,20 +81,18 @@ const ChatRoomPage = () => {
             className='w-full text-left flex items-center justify-between p-4 bg-white rounded-lg shadow hover:shadow-md cursor-pointer transition-shadow'
             onClick={() => navigate(`/chat/${room.chatRoomId}`)}
           >
-            <div>
+            <div className='flex-1 min-w-0'>
               <h3 className='font-semibold'>{room.name}</h3>
-              {room.lastMessage && (
-                <p className='text-sm text-gray-500 mt-1'>
-                  {room.lastMessage.length > 30
-                    ? room.lastMessage.substring(0, 30) + '...'
-                    : room.lastMessage}
+              {room.lastChatMessage && (
+                <p className='text-sm text-gray-500 mt-1 truncate'>
+                  {room.lastChatMessage}
                 </p>
               )}
             </div>
-            <div className='text-right'>
+            <div className='text-right ml-4 flex flex-col items-end'>
               <p className='text-xs text-gray-500'>
-                {room.lastMessageTime &&
-                  moment(room.lastMessageTime).format('MM/DD HH:mm')}
+                {room.lastChatSendAt &&
+                  moment(room.lastChatSendAt).format('MM/DD HH:mm')}
               </p>
               {room.unreadCount > 0 && (
                 <span className='inline-block bg-red-500 text-white text-xs rounded-full px-2 py-1 mt-1'>
