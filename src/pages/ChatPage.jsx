@@ -3,24 +3,42 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { getCookie } from '../utils/CookieUtils';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const ChatPage = () => {
   const stompClient = useRef(null);
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
+  const [myInfo, setMyInfo] = useState(null);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('useEffect');
+    fetchMyInfo();
     stompHandler().connect();
 
     return () => stompHandler().disconnect();
   }, []);
 
+  const fetchMyInfo = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/v1/auth/me', {
+        headers: {
+          Authorization: `Bearer ${getCookie('accessToken')}`,
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
+      });
+      setMyInfo(response.data.data);
+    } catch (error) {
+      console.error(error);
+      alert('로그인 후 이용해주세요.');
+      // navigate('/login');
+    }
+  };
+
   const stompHandler = () => {
-    console.log('stompHandler');
     return {
       connect: () => {
         if (!stompClient.current) {
@@ -38,9 +56,9 @@ const ChatPage = () => {
             onConnect: (conn) => {
               console.log('Connected: ' + conn);
               stompClient.current.subscribe('/sub/1', (message) => {
-                console.log('Received: ' + message.body);
+                console.log('Received: ', JSON.parse(message.body));
                 setMessages((prev) => {
-                  return [...prev, message.body];
+                  return [...prev, JSON.parse(message.body)];
                 });
               });
             },
@@ -105,17 +123,27 @@ const ChatPage = () => {
           {[...messages].reverse().map((message, index) => (
             <div
               key={index}
-              className={`mb-4 flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+              className={`mb-4 flex flex-col ${
+                message.sender === myInfo.nickname ? 'items-end' : 'items-start'
+              }`}
             >
-              <div
-                className={`max-w-[70%] px-4 py-2 text-gray-800 rounded-2xl
-          ${
-            message.sender === 'me'
-              ? 'bg-indigo-500 text-white rounded-tr-none'
-              : 'bg-gray-100 rounded-tl-none'
-          }`}
-              >
-                {message}
+              {message.sender !== myInfo.nickname && (
+                <span className='text-sm text-gray-600 mb-1 ml-2'>
+                  {message.sender}
+                </span>
+              )}
+
+              <div className='flex items-end gap-2'>
+                <div
+                  className={`break-all px-4 py-2 text-gray-800 rounded-2xl
+                    ${
+                      message.sender === myInfo.nickname
+                        ? 'bg-indigo-500 text-white rounded-tr-none'
+                        : 'bg-gray-100 rounded-tl-none'
+                    }`}
+                >
+                  {message.message}
+                </div>
               </div>
             </div>
           ))}
