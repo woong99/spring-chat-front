@@ -30,11 +30,17 @@ const ChatRoomPage = () => {
     };
 
     // 채팅방 업데이트 이벤트 (새 메시지, 참여자 수 변경 등)
-    eventSource.addEventListener('UPDATE_CHAT_ROOM', (event) => {
+    eventSource.addEventListener('UNREAD_MESSAGE_COUNT', (event) => {
       const updatedRoom = JSON.parse(event.data);
       setChatRooms((prevRooms) =>
         prevRooms.map((room) =>
-          room.chatRoomId === updatedRoom.chatRoomId ? updatedRoom : room
+          room.chatRoomId === updatedRoom.chatRoomId
+            ? {
+                ...room,
+                unreadCount: updatedRoom.unreadCount,
+                lastChatMessage: updatedRoom.lastMessage,
+              }
+            : room
         )
       );
     });
