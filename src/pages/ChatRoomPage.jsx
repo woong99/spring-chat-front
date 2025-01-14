@@ -3,11 +3,57 @@ import axios from 'axios';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { getCookie } from '../utils/CookieUtils';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 
 const ChatRoomPage = () => {
   const [chatRooms, setChatRooms] = useState([]);
   const [newRoomName, setNewRoomName] = useState('');
   const navigate = useNavigate();
+
+  // SSE 연결 설정
+  useEffect(() => {
+    console.log('SSE 연결 시작');
+    const eventSource = new EventSourcePolyfill(
+      `http://localhost:8080/api/v1/chat-room/notification/subscribe`,
+      {
+        headers: {
+          Authorization: `Bearer ${getCookie('accessToken')}`,
+        },
+        heartbeatTimeout: 86400000,
+        withCredentials: true,
+      }
+    );
+
+    eventSource.onopen = () => {
+      console.log('SSE 연결 성공');
+    };
+
+    // 채팅방 업데이트 이벤트 (새 메시지, 참여자 수 변경 등)
+    eventSource.addEventListener('UPDATE_CHAT_ROOM', (event) => {
+      const updatedRoom = JSON.parse(event.data);
+      setChatRooms((prevRooms) =>
+        prevRooms.map((room) =>
+          room.chatRoomId === updatedRoom.chatRoomId ? updatedRoom : room
+        )
+      );
+    });
+
+    // 에러 처리
+    eventSource.onerror = (error) => {
+      console.error('SSE 연결 에러:', error);
+      //   eventSource.close();
+    };
+
+    // 컴포넌트 언마운트 시 연결 종료
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
+  // 초기 채팅방 목록 로딩
+  useEffect(() => {
+    fetchChatRooms();
+  }, []);
 
   // 채팅방 목록 가져오기
   const fetchChatRooms = async () => {
@@ -20,7 +66,6 @@ const ChatRoomPage = () => {
           },
         }
       );
-      console.log(response.data.data);
       setChatRooms(response.data.data);
     } catch (error) {
       console.error('채팅방 목록 조회 실패:', error);
@@ -48,10 +93,6 @@ const ChatRoomPage = () => {
       console.error('채팅방 생성 실패:', error);
     }
   };
-
-  useEffect(() => {
-    fetchChatRooms();
-  }, []);
 
   return (
     <div className='max-w-screen-md mx-auto p-4'>
