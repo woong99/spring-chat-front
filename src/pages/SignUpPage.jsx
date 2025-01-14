@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Logo from '../components/Logo';
 
 const SignUpPage = () => {
-  const [userId, setUserId] = useState();
-  const [nickname, setNickname] = useState();
-  const [password, setPassword] = useState();
-
+  const [userId, setUserId] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const signup = () => {
+  const handleSignup = (e) => {
+    e.preventDefault();
     axios
       .post('http://localhost:8080/api/v1/auth/sign-up', {
         userId,
@@ -20,98 +21,104 @@ const SignUpPage = () => {
         navigate('/login');
       })
       .catch((error) => {
-        alert(error.response.data.message); // TODO : 에러 처리
+        alert(error.response.data.message);
       });
   };
 
   return (
-    <div className='flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8'>
-      <div className='sm:mx-auto sm:w-full sm:max-w-sm'>
-        <img
-          alt='Your Company'
-          src='https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600'
-          className='mx-auto h-10 w-auto'
-        />
-        <h2 className='mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900'>
-          회원가입
-        </h2>
-      </div>
+    <div className='min-h-screen bg-gray-50'>
+      <div className='max-w-md mx-auto h-screen flex flex-col bg-white shadow-lg'>
+        {/* 헤더 */}
+        <div className='bg-white px-4 py-5 flex items-center border-b relative shadow-sm'>
+          <span className='font-semibold flex-1 text-center text-lg'>
+            회원가입
+          </span>
+        </div>
 
-      <div className='mt-10 sm:mx-auto sm:w-full sm:max-w-sm'>
-        <form action='#' method='POST' className='space-y-6'>
-          <div>
-            <label
-              htmlFor='email'
-              className='block text-sm/6 font-medium text-gray-900 text-left'
-            >
-              아이디
-            </label>
-            <div className='mt-2'>
+        {/* 컨텐츠 */}
+        <div className='flex-1 p-6'>
+          <div className='flex flex-col items-center mb-8'>
+            <Logo />
+          </div>
+
+          <form onSubmit={handleSignup} className='space-y-4'>
+            <div>
+              <label
+                htmlFor='userId'
+                className='block text-sm font-medium text-gray-700 mb-1'
+              >
+                아이디
+              </label>
               <input
-                id='email'
-                name='email'
-                type='email'
+                id='userId'
+                name='userId'
+                type='text'
                 required
-                autoComplete='email'
-                className='block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6'
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
+                className='w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors'
+                placeholder='아이디를 입력하세요'
               />
             </div>
-          </div>
-          <div>
-            <label
-              htmlFor='nickname'
-              className='block text-sm/6 font-medium text-gray-900 text-left'
-            >
-              닉네임
-            </label>
-            <div className='mt-2'>
+
+            <div>
+              <label
+                htmlFor='nickname'
+                className='block text-sm font-medium text-gray-700 mb-1'
+              >
+                닉네임
+              </label>
               <input
                 id='nickname'
                 name='nickname'
                 type='text'
                 required
-                autoComplete='email'
-                className='block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6'
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
+                className='w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors'
+                placeholder='닉네임을 입력하세요'
               />
             </div>
-          </div>
-          <div>
-            <div className='flex items-center justify-between'>
+
+            <div>
               <label
                 htmlFor='password'
-                className='block text-sm/6 font-medium text-gray-900'
+                className='block text-sm font-medium text-gray-700 mb-1'
               >
                 비밀번호
               </label>
-            </div>
-            <div className='mt-2'>
               <input
                 id='password'
                 name='password'
                 type='password'
                 required
-                autoComplete='current-password'
-                className='block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6'
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className='w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors'
+                placeholder='비밀번호를 입력하세요'
               />
             </div>
-          </div>
 
-          <div>
             <button
-              type='button'
-              className='flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-              onClick={signup}
+              type='submit'
+              className='w-full bg-indigo-600 text-white font-medium py-3 px-4 rounded-xl hover:bg-indigo-500 transition-colors mt-6'
             >
               회원가입
             </button>
+          </form>
+
+          <div className='mt-6 text-center'>
+            <span className='text-sm text-gray-600'>
+              이미 계정이 있으신가요?{' '}
+            </span>
+            <button
+              onClick={() => navigate('/login')}
+              className='text-sm text-indigo-600 font-medium hover:text-indigo-500'
+            >
+              로그인
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
