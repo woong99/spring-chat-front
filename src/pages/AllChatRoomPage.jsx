@@ -3,59 +3,12 @@ import axios from 'axios';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { getCookie } from '../utils/CookieUtils';
-import { EventSourcePolyfill } from 'event-source-polyfill';
 import { FaPlus } from 'react-icons/fa';
 
-const ChatRoomPage = () => {
+const AllChatRoomPage = () => {
   const [chatRooms, setChatRooms] = useState([]);
   const [newRoomName, setNewRoomName] = useState('');
   const navigate = useNavigate();
-
-  // SSE 연결 설정
-  useEffect(() => {
-    console.log('SSE 연결 시작');
-    const eventSource = new EventSourcePolyfill(
-      `http://localhost:8080/api/v1/chat-room/notification/subscribe`,
-      {
-        headers: {
-          Authorization: `Bearer ${getCookie('accessToken')}`,
-        },
-        heartbeatTimeout: 86400000,
-        withCredentials: true,
-      }
-    );
-
-    eventSource.onopen = () => {
-      console.log('SSE 연결 성공');
-    };
-
-    // 채팅방 업데이트 이벤트 (새 메시지, 참여자 수 변경 등)
-    eventSource.addEventListener('UNREAD_MESSAGE_COUNT', (event) => {
-      const updatedRoom = JSON.parse(event.data);
-      setChatRooms((prevRooms) =>
-        prevRooms.map((room) =>
-          room.chatRoomId === updatedRoom.chatRoomId
-            ? {
-                ...room,
-                unreadCount: updatedRoom.unreadCount,
-                lastChatMessage: updatedRoom.lastMessage,
-              }
-            : room
-        )
-      );
-    });
-
-    // 에러 처리
-    eventSource.onerror = (error) => {
-      console.error('SSE 연결 에러:', error);
-      //   eventSource.close();
-    };
-
-    // 컴포넌트 언마운트 시 연결 종료
-    return () => {
-      eventSource.close();
-    };
-  }, []);
 
   // 초기 채팅방 목록 로딩
   useEffect(() => {
@@ -66,7 +19,7 @@ const ChatRoomPage = () => {
   const fetchChatRooms = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:8080/api/v1/chat-room/list',
+        'http://localhost:8080/api/v1/chat-room/all-list',
         {
           headers: {
             Authorization: `Bearer ${getCookie('accessToken')}`,
@@ -138,27 +91,18 @@ const ChatRoomPage = () => {
               <div className='flex-1 min-w-0 flex flex-col justify-center'>
                 <div className='flex items-center gap-2'>
                   <h3 className='font-semibold text-gray-800 line-clamp-1'>
-                    {room.name}
+                    {room.chatRoomName}
                   </h3>
                   <span className='text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full whitespace-nowrap'>
                     {room.participantCount}명 참여중
                   </span>
                 </div>
-                <p className='text-sm text-gray-500 mt-1.5 line-clamp-1'>
-                  {room.lastChatMessage || '새로운 채팅방이 생성되었습니다.'}
-                </p>
               </div>
               <div className='text-right ml-4 flex flex-col items-end justify-center h-full'>
                 <p className='text-xs text-gray-400 whitespace-nowrap'>
-                  {room.lastChatSendAt
-                    ? moment(room.lastChatSendAt).format('MM/DD HH:mm')
-                    : moment().format('MM/DD HH:mm')}
+                  {room.lastSendAt &&
+                    moment(room.lastSendAt).format('MM/DD HH:mm')}
                 </p>
-                {room.unreadCount > 0 && (
-                  <span className='inline-flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-xs font-medium rounded-full px-1.5 mt-1.5'>
-                    {room.unreadCount}
-                  </span>
-                )}
               </div>
             </button>
           ))}
@@ -168,4 +112,4 @@ const ChatRoomPage = () => {
   );
 };
 
-export default ChatRoomPage;
+export default AllChatRoomPage;
