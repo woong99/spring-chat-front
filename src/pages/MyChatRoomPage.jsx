@@ -101,6 +101,28 @@ const AllChatRoomPage = () => {
     }
   };
 
+  // 시간 포맷 함수 추가
+  const formatTime = (time) => {
+    if (!time) return '';
+
+    const messageTime = moment(time);
+    const now = moment();
+
+    if (messageTime.isSame(now, 'day')) {
+      // 오늘
+      return messageTime.format('HH:mm');
+    } else if (messageTime.isSame(now.subtract(1, 'day'), 'day')) {
+      // 어제
+      return '어제';
+    } else if (messageTime.isSame(now, 'year')) {
+      // 이번 년도
+      return messageTime.format('M월 D일');
+    } else {
+      // 이전 년도
+      return messageTime.format('YYYY-MM-DD');
+    }
+  };
+
   return (
     <div className='max-w-screen-md mx-auto h-screen flex flex-col'>
       {/* 헤더 */}
@@ -150,8 +172,7 @@ const AllChatRoomPage = () => {
               </div>
               <div className='text-right ml-4 flex flex-col items-end justify-center h-full'>
                 <p className='text-xs text-gray-400 whitespace-nowrap'>
-                  {room.lastSendAt &&
-                    moment(room.lastChatSendAt).format('MM/DD HH:mm')}
+                  {formatTime(room.lastSendAt)}
                 </p>
                 {room.unreadCount > 0 && (
                   <span className='inline-flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-xs font-medium rounded-full px-1.5 mt-1.5'>

@@ -54,6 +54,28 @@ const AllChatRoomPage = () => {
     }
   };
 
+  // 채팅방 생성 함수 아래에 추가
+  const formatTime = (time) => {
+    if (!time) return '';
+
+    const messageTime = moment(time);
+    const now = moment();
+
+    if (messageTime.isSame(now, 'day')) {
+      // 오늘
+      return messageTime.format('HH:mm');
+    } else if (messageTime.isSame(now.subtract(1, 'day'), 'day')) {
+      // 어제
+      return '어제';
+    } else if (messageTime.isSame(now, 'year')) {
+      // 이번 년도
+      return messageTime.format('M월 D일');
+    } else {
+      // 이전 년도
+      return messageTime.format('YYYY-MM-DD');
+    }
+  };
+
   return (
     <div className='max-w-screen-md mx-auto h-screen flex flex-col'>
       {/* 헤더 */}
@@ -100,8 +122,7 @@ const AllChatRoomPage = () => {
               </div>
               <div className='text-right ml-4 flex flex-col items-end justify-center h-full'>
                 <p className='text-xs text-gray-400 whitespace-nowrap'>
-                  {room.lastSendAt &&
-                    moment(room.lastSendAt).format('MM/DD HH:mm')}
+                  {formatTime(room.lastSendAt)}
                 </p>
               </div>
             </button>
