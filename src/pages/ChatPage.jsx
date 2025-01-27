@@ -3,7 +3,7 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { getCookie } from '../utils/CookieUtils';
 import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/axios';
 import moment from 'moment';
 import 'moment/locale/ko';
 import { FaChevronLeft } from 'react-icons/fa';
@@ -38,14 +38,7 @@ const ChatPage = () => {
   // 채팅 내역 조회
   const fetchChatHistory = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8080/api/v1/chat/${roomId}/messages`,
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie('accessToken')}`,
-          },
-        }
-      );
+      const response = await api.get(`/chat/${roomId}/messages`);
       setMessages(response.data.data.messages);
       setChatRoomName(response.data.data.chatRoomName);
     } catch (error) {
@@ -63,13 +56,7 @@ const ChatPage = () => {
 
   const fetchMyInfo = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/v1/auth/me', {
-        headers: {
-          Authorization: `Bearer ${getCookie('accessToken')}`,
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
-      });
+      const response = await api.get('/auth/me');
       setMyInfo(response.data.data);
     } catch (error) {
       console.error(error);
@@ -84,7 +71,9 @@ const ChatPage = () => {
         if (!stompClient.current) {
           stompClient.current = new Client({
             webSocketFactory: () =>
-              new SockJS('http://localhost:8080/ws-stomp'),
+              new SockJS(
+                `${api.defaults.baseURL.replace('/api/v1', '')}/ws-stomp`
+              ),
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
@@ -95,16 +84,19 @@ const ChatPage = () => {
 
             onConnect: (conn) => {
               console.log('Connected: ' + conn);
-              stompClient.current.subscribe(`/sub/${roomId}`, (message) => {
-                console.log('Received: ', JSON.parse(message.body));
-                setMessages((prev) => {
-                  return [JSON.parse(message.body), ...prev];
-                });
-              });
+              stompClient.current.subscribe(
+                `/exchange/chat.exchange/chat.room.${roomId}`,
+                (message) => {
+                  console.log('Received: ', JSON.parse(message.body));
+                  setMessages((prev) => {
+                    return [JSON.parse(message.body), ...prev];
+                  });
+                }
+              );
             },
 
             onWebSocketClose: (close) => {
-              console.log('Disconnected: ' + close);
+              console.log('Disconnected: ', close);
             },
 
             onWebSocketError: (error) => {
@@ -130,7 +122,7 @@ const ChatPage = () => {
       sendMessage: () => {
         if (text) {
           stompClient.current.publish({
-            destination: `/pub/chat/${roomId}`,
+            destination: `/pub/chat.message.${roomId}`,
             body: JSON.stringify({
               message: text,
             }),

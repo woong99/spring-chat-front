@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../components/Logo';
 
@@ -11,8 +11,8 @@ const SignUpPage = () => {
 
   const handleSignup = (e) => {
     e.preventDefault();
-    axios
-      .post('http://localhost:8080/api/v1/auth/sign-up', {
+    api
+      .post('/auth/sign-up', {
         userId,
         nickname,
         password,

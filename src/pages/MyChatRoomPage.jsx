@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api/axios';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { getCookie } from '../utils/CookieUtils';
@@ -15,7 +15,7 @@ const AllChatRoomPage = () => {
   useEffect(() => {
     console.log('SSE 연결 시작');
     const eventSource = new EventSourcePolyfill(
-      `http://localhost:8080/api/v1/chat-room/notification/subscribe`,
+      `${api.defaults.baseURL}/chat-room/notification/subscribe`,
       {
         headers: {
           Authorization: `Bearer ${getCookie('accessToken')}`,
@@ -65,14 +65,7 @@ const AllChatRoomPage = () => {
   // 채팅방 목록 가져오기
   const fetchChatRooms = async () => {
     try {
-      const response = await axios.get(
-        'http://localhost:8080/api/v1/chat-room/my-list',
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie('accessToken')}`,
-          },
-        }
-      );
+      const response = await api.get('/chat-room/my-list');
       setChatRooms(response.data.data);
     } catch (error) {
       console.error('채팅방 목록 조회 실패:', error);
@@ -85,15 +78,7 @@ const AllChatRoomPage = () => {
     if (!newRoomName.trim()) return;
 
     try {
-      await axios.post(
-        'http://localhost:8080/api/v1/chat-room',
-        { name: newRoomName },
-        {
-          headers: {
-            Authorization: `Bearer ${getCookie('accessToken')}`,
-          },
-        }
-      );
+      await api.post('/chat-room', { name: newRoomName });
       setNewRoomName('');
       fetchChatRooms(); // 채팅방 생성 후 목록 새로고침
     } catch (error) {
