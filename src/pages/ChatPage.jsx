@@ -68,7 +68,19 @@ const ChatPage = () => {
     fetchChatHistory();
     stompHandler().connect();
 
-    return () => stompHandler().disconnect();
+    // 새로고침 시 채팅 연결 해제
+    const handleBeforeUnload = () => {
+      console.log('beforeunload');
+      stompHandler().disconnect();
+    };
+
+    // 새로고침 이벤트 리스너 추가
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      stompHandler().disconnect();
+    };
   }, [roomId]);
 
   // 채팅 내역 조회
@@ -114,9 +126,7 @@ const ChatPage = () => {
         if (!stompClient.current) {
           stompClient.current = new Client({
             webSocketFactory: () =>
-              new SockJS(
-                `${api.defaults.baseURL.replace('/api/v1', '')}/ws-stomp`
-              ),
+              new SockJS(`${process.env.REACT_APP_WEBSOCKET_URL}/ws-stomp`),
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
@@ -141,7 +151,7 @@ const ChatPage = () => {
             },
 
             onWebSocketError: (error) => {
-              console.error('WebSocketError: ' + error);
+              console.error('WebSocketError: ', error);
             },
 
             onStompError: (frame) => {
@@ -149,7 +159,7 @@ const ChatPage = () => {
                 alert('로그인 후 이용해주세요.');
                 navigate('/login');
               }
-              console.error('StompError: ' + frame.body);
+              console.error('StompError: ', frame.body);
             },
           });
           stompClient.current.activate();
@@ -166,6 +176,7 @@ const ChatPage = () => {
             destination: `/pub/chat/${roomId}`,
             body: JSON.stringify({
               message: text,
+              type: 'MESSAGE',
             }),
           });
 
@@ -176,6 +187,13 @@ const ChatPage = () => {
       disconnect: () => {
         console.log('Disconnected');
         if (stompClient.current) {
+          stompClient.current.publish({
+            destination: `/pub/chat/${roomId}`,
+            body: JSON.stringify({
+              message: 'disconnect',
+              type: 'DISCONNECT',
+            }),
+          });
           stompClient.current.deactivate();
           stompClient.current = null;
         }
