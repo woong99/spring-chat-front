@@ -15,7 +15,7 @@ const AllChatRoomPage = () => {
   useEffect(() => {
     console.log('SSE 연결 시작');
     const eventSource = new EventSourcePolyfill(
-      `${api.defaults.baseURL}/chat-room/notification/subscribe`,
+      `${process.env.REACT_APP_SSE_URL}/chat-room/notification/subscribe`,
       {
         headers: {
           Authorization: `Bearer ${getCookie('accessToken')}`,
@@ -32,17 +32,34 @@ const AllChatRoomPage = () => {
     // 채팅방 업데이트 이벤트 (새 메시지, 참여자 수 변경 등)
     eventSource.addEventListener('UNREAD_MESSAGE_COUNT', (event) => {
       const updatedRoom = JSON.parse(event.data);
-      setChatRooms((prevRooms) =>
-        prevRooms.map((room) =>
+      setChatRooms((prevRooms) => {
+        // 채팅방 목록 중 업데이트된 채팅방을 찾아서 업데이트
+        const updatedRooms = prevRooms.map((room) =>
           room.chatRoomId === updatedRoom.chatRoomId
             ? {
                 ...room,
-                unreadCount: updatedRoom.unreadCount,
-                lastChatMessage: updatedRoom.lastMessage,
+                unreadMessageCount: updatedRoom.unreadMessageCount,
+                lastMessage: updatedRoom.lastMessage,
+                lastSendAt: updatedRoom.lastSendAt,
               }
             : room
-        )
-      );
+        );
+
+        // lastSendAt 기준으로 내림차순 정렬 (최신 메시지가 위로, null은 가장 아래로)
+        return updatedRooms.sort((a, b) => {
+          // a가 null이고 b가 null이 아닌 경우, a를 뒤로
+          if (a.lastSendAt === null && b.lastSendAt !== null) return 1;
+          // b가 null이고 a가 null이 아닌 경우, b를 뒤로
+          if (b.lastSendAt === null && a.lastSendAt !== null) return -1;
+          // 둘 다 null인 경우, 순서 유지
+          if (a.lastSendAt === null && b.lastSendAt === null) return 0;
+
+          // 둘 다 null이 아닌 경우, 날짜 비교
+          const dateA = new Date(a.lastSendAt);
+          const dateB = new Date(b.lastSendAt);
+          return dateB - dateA; // 내림차순 정렬
+        });
+      });
     });
 
     // 에러 처리
@@ -53,6 +70,7 @@ const AllChatRoomPage = () => {
 
     // 컴포넌트 언마운트 시 연결 종료
     return () => {
+      console.log('컴포넌트 언마운트');
       eventSource.close();
     };
   }, []);
@@ -152,16 +170,16 @@ const AllChatRoomPage = () => {
                   </span>
                 </div>
                 <p className='text-sm text-gray-500 mt-1.5 line-clamp-1'>
-                  {room.lastChatMessage || '메시지가 없습니다.'}
+                  {room.lastMessage || '메시지가 없습니다.'}
                 </p>
               </div>
               <div className='text-right ml-4 flex flex-col items-end justify-center h-full'>
                 <p className='text-xs text-gray-400 whitespace-nowrap'>
                   {formatTime(room.lastSendAt)}
                 </p>
-                {room.unreadCount > 0 && (
+                {room.unreadMessageCount > 0 && (
                   <span className='inline-flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-xs font-medium rounded-full px-1.5 mt-1.5'>
-                    {room.unreadCount}
+                    {room.unreadMessageCount}
                   </span>
                 )}
               </div>
