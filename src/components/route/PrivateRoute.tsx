@@ -1,9 +1,10 @@
+import React from 'react';
+import { getCookie } from '../../utils/CookieUtils';
 import { Navigate, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import { getCookie } from '../utils/CookieUtils';
 
-const PrivateRoute = ({ children }) => {
-  const isAuthenticated = getCookie('accessToken'); // 토큰 존재 여부로 인증 상태 확인
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAuthenticated = getCookie('accessToken');
   const location = useLocation();
 
   if (!isAuthenticated) {

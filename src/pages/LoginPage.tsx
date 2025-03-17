@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
-import api from '../api/axios';
+import api from '../api/axios.ts';
 import { useNavigate } from 'react-router-dom';
-import Logo from '../components/Logo';
+import { setCookie } from '../utils/CookieUtils.ts';
+import Logo from '../components/Logo.tsx';
 
-const SignUpPage = () => {
+const LoginPage = () => {
   const [userId, setUserId] = useState('');
-  const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     api
-      .post('/auth/sign-up', {
+      .post('/auth/login', {
         userId,
-        nickname,
         password,
       })
-      .then(() => {
-        navigate('/login');
+      .then((response) => {
+        setCookie('accessToken', response.data.data.token, {
+          path: '/',
+          expires: new Date(response.data.data.expiresIn),
+        });
+        navigate('/');
       })
       .catch((error) => {
         alert(error.response.data.message);
@@ -31,7 +34,7 @@ const SignUpPage = () => {
         {/* 헤더 */}
         <div className='bg-white px-4 py-5 flex items-center border-b relative shadow-sm'>
           <span className='font-semibold flex-1 text-center text-lg'>
-            회원가입
+            로그인
           </span>
         </div>
 
@@ -41,7 +44,7 @@ const SignUpPage = () => {
             <Logo />
           </div>
 
-          <form onSubmit={handleSignup} className='space-y-4'>
+          <form onSubmit={handleLogin} className='space-y-4'>
             <div>
               <label
                 htmlFor='userId'
@@ -58,25 +61,6 @@ const SignUpPage = () => {
                 onChange={(e) => setUserId(e.target.value)}
                 className='w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors'
                 placeholder='아이디를 입력하세요'
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor='nickname'
-                className='block text-sm font-medium text-gray-700 mb-1'
-              >
-                닉네임
-              </label>
-              <input
-                id='nickname'
-                name='nickname'
-                type='text'
-                required
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                className='w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-colors'
-                placeholder='닉네임을 입력하세요'
               />
             </div>
 
@@ -103,19 +87,17 @@ const SignUpPage = () => {
               type='submit'
               className='w-full bg-indigo-600 text-white font-medium py-3 px-4 rounded-xl hover:bg-indigo-500 transition-colors mt-6'
             >
-              회원가입
+              로그인
             </button>
           </form>
 
           <div className='mt-6 text-center'>
-            <span className='text-sm text-gray-600'>
-              이미 계정이 있으신가요?{' '}
-            </span>
+            <span className='text-sm text-gray-600'>계정이 없으신가요? </span>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/signup')}
               className='text-sm text-indigo-600 font-medium hover:text-indigo-500'
             >
-              로그인
+              회원가입
             </button>
           </div>
         </div>
@@ -124,4 +106,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage;
+export default LoginPage;

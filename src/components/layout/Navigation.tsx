@@ -1,5 +1,5 @@
-import { NavLink } from 'react-router-dom';
 import { FaComments, FaUserFriends } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
 
 const Navigation = () => {
   return (

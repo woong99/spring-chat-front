@@ -1,12 +1,12 @@
-import axios from 'axios';
-import { getCookie } from '../utils/CookieUtils';
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import { getCookie } from '../utils/CookieUtils.ts';
 
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+const api: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = getCookie('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

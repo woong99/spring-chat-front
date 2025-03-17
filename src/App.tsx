@@ -1,12 +1,11 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import ChatRoomPage from './pages/AllChatRoomPage';
+import SignUpPage from './pages/SignUpPage';
+import PublicRoute from './components/route/PublicRoute';
+import Layout from './components/layout/Layout';
+import PrivateRoute from './components/route/PrivateRoute';
 import MyChatRoomPage from './pages/MyChatRoomPage';
 import ChatPage from './pages/ChatPage';
-import SignUpPage from './pages/SignUpPage';
-import PrivateRoute from './components/PrivateRoute';
-import PublicRoute from './components/PublicRoute';
 
 function App() {
   return (
@@ -29,14 +28,6 @@ function App() {
           }
         />
         <Route element={<Layout />}>
-          <Route
-            path='/'
-            element={
-              <PrivateRoute>
-                <ChatRoomPage />
-              </PrivateRoute>
-            }
-          />
           <Route
             path='/my-chats'
             element={

@@ -21,6 +21,7 @@ module.exports = {
   plugins: ['react', 'react-hooks', 'jsx-a11y'],
   rules: {
     'react/react-in-jsx-scope': 'off',
+    'no-unused-vars': 'warn',
   },
   settings: {
     react: { version: 'detect' },

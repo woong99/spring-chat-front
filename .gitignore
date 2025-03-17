@@ -418,3 +418,5 @@ sketch
 # End of https://www.toptal.com/developers/gitignore/api/macos,intellij,intellij+iml,intellij+all,react,node
 
 .env
+.vercel
+build/

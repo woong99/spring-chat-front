@@ -1,13 +1,29 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { EventSourcePolyfill, MessageEvent } from 'event-source-polyfill';
+import { getCookie } from '../utils/CookieUtils';
 import api from '../api/axios';
 import moment from 'moment';
-import { useNavigate } from 'react-router-dom';
-import { getCookie } from '../utils/CookieUtils';
-import { EventSourcePolyfill } from 'event-source-polyfill';
 import { FaPlus } from 'react-icons/fa';
 
-const AllChatRoomPage = () => {
-  const [chatRooms, setChatRooms] = useState([]);
+// EventSourceEventMap 인터페이스 확장
+declare module 'event-source-polyfill' {
+  interface EventSourceEventMap {
+    UNREAD_MESSAGE_COUNT: MessageEvent;
+  }
+}
+
+const MyChatRoomPage = () => {
+  type ChatRoom = {
+    chatRoomId: string;
+    lastMessage: string | null;
+    lastSendAt: string | null;
+    chatRoomName: string;
+    participantCount: number;
+    unreadMessageCount: number;
+  };
+
+  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [newRoomName, setNewRoomName] = useState('');
   const navigate = useNavigate();
 
@@ -15,7 +31,7 @@ const AllChatRoomPage = () => {
   useEffect(() => {
     console.log('SSE 연결 시작');
     const eventSource = new EventSourcePolyfill(
-      `${process.env.REACT_APP_SSE_URL}/chat-room/notification/subscribe`,
+      `${import.meta.env.VITE_SSE_URL}/chat-room/notification/subscribe`,
       {
         headers: {
           Authorization: `Bearer ${getCookie('accessToken')}`,
@@ -30,37 +46,40 @@ const AllChatRoomPage = () => {
     };
 
     // 채팅방 업데이트 이벤트 (새 메시지, 참여자 수 변경 등)
-    eventSource.addEventListener('UNREAD_MESSAGE_COUNT', (event) => {
-      const updatedRoom = JSON.parse(event.data);
-      setChatRooms((prevRooms) => {
-        // 채팅방 목록 중 업데이트된 채팅방을 찾아서 업데이트
-        const updatedRooms = prevRooms.map((room) =>
-          room.chatRoomId === updatedRoom.chatRoomId
-            ? {
-                ...room,
-                unreadMessageCount: updatedRoom.unreadMessageCount,
-                lastMessage: updatedRoom.lastMessage,
-                lastSendAt: updatedRoom.lastSendAt,
-              }
-            : room
-        );
+    eventSource.addEventListener(
+      'UNREAD_MESSAGE_COUNT',
+      (event: MessageEvent) => {
+        const updatedRoom = JSON.parse(event.data);
+        setChatRooms((prevRooms) => {
+          // 채팅방 목록 중 업데이트된 채팅방을 찾아서 업데이트
+          const updatedRooms = prevRooms.map((room) =>
+            room.chatRoomId === updatedRoom.chatRoomId
+              ? {
+                  ...room,
+                  unreadMessageCount: updatedRoom.unreadMessageCount,
+                  lastMessage: updatedRoom.lastMessage,
+                  lastSendAt: updatedRoom.lastSendAt,
+                }
+              : room
+          );
 
-        // lastSendAt 기준으로 내림차순 정렬 (최신 메시지가 위로, null은 가장 아래로)
-        return updatedRooms.sort((a, b) => {
-          // a가 null이고 b가 null이 아닌 경우, a를 뒤로
-          if (a.lastSendAt === null && b.lastSendAt !== null) return 1;
-          // b가 null이고 a가 null이 아닌 경우, b를 뒤로
-          if (b.lastSendAt === null && a.lastSendAt !== null) return -1;
-          // 둘 다 null인 경우, 순서 유지
-          if (a.lastSendAt === null && b.lastSendAt === null) return 0;
+          // lastSendAt 기준으로 내림차순 정렬 (최신 메시지가 위로, null은 가장 아래로)
+          return updatedRooms.sort((a, b) => {
+            // a가 null이고 b가 null이 아닌 경우, a를 뒤로
+            if (a.lastSendAt === null && b.lastSendAt !== null) return 1;
+            // b가 null이고 a가 null이 아닌 경우, b를 뒤로
+            if (b.lastSendAt === null && a.lastSendAt !== null) return -1;
+            // 둘 다 null인 경우, 순서 유지
+            if (a.lastSendAt === null && b.lastSendAt === null) return 0;
 
-          // 둘 다 null이 아닌 경우, 날짜 비교
-          const dateA = new Date(a.lastSendAt);
-          const dateB = new Date(b.lastSendAt);
-          return dateB - dateA; // 내림차순 정렬
+            // 둘 다 null이 아닌 경우, 날짜 비교
+            const dateA = new Date(a.lastSendAt);
+            const dateB = new Date(b.lastSendAt);
+            return dateB.getTime() - dateA.getTime(); // 내림차순 정렬
+          });
         });
-      });
-    });
+      }
+    );
 
     // 에러 처리
     eventSource.onerror = (error) => {
@@ -77,6 +96,7 @@ const AllChatRoomPage = () => {
 
   // 초기 채팅방 목록 로딩
   useEffect(() => {
+    console.log('초기 채팅방 목록 로딩');
     fetchChatRooms();
   }, []);
 
@@ -91,7 +111,7 @@ const AllChatRoomPage = () => {
   };
 
   // 채팅방 생성 함수
-  const createChatRoom = async (e) => {
+  const createChatRoom = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newRoomName.trim()) return;
 
@@ -105,7 +125,7 @@ const AllChatRoomPage = () => {
   };
 
   // 시간 포맷 함수 추가
-  const formatTime = (time) => {
+  const formatTime = (time: string | null) => {
     if (!time) return '';
 
     const messageTime = moment(time);
@@ -191,4 +211,4 @@ const AllChatRoomPage = () => {
   );
 };
 
-export default AllChatRoomPage;
+export default MyChatRoomPage;

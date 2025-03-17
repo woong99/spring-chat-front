@@ -1,34 +1,48 @@
-import React, { useEffect, useRef, useState, Fragment } from 'react';
-import { Client } from '@stomp/stompjs';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
-import { getCookie } from '../utils/CookieUtils';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useIntersectionObserver } from '../hooks/useIntersectionObjectser';
 import api from '../api/axios';
-import moment from 'moment';
-import 'moment/locale/ko';
+import { Client } from '@stomp/stompjs';
+import { getCookie } from '../utils/CookieUtils';
 import { FaChevronLeft } from 'react-icons/fa';
-import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import moment from 'moment';
 
 const ChatPage = () => {
+  type Message = {
+    sender: number;
+    nickname: string;
+    message: string;
+    sendAt: number;
+  };
+
+  type MyInfo = {
+    id: number;
+    userId: string;
+    nickname: string;
+  };
+
   const { roomId } = useParams();
-  const stompClient = useRef(null);
+  const stompClient = useRef<Client>(null);
 
   const [chatRoomName, setChatRoomName] = useState('');
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [text, setText] = useState('');
-  const [myInfo, setMyInfo] = useState(null);
+  const [myInfo, setMyInfo] = useState<MyInfo>();
   const navigate = useNavigate();
-  const scrollRef = useRef(null);
-  const observeRef = useRef(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const observeRef = useRef<HTMLDivElement>(null);
   const [scrollHeight, setScrollHeight] = useState(0);
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const onIntersect = ([entry]) => {
-    if (entry.isIntersecting) {
+  const onIntersect: IntersectionObserverCallback = (entries) => {
+    const [entry] = entries;
+    if (entry && entry.isIntersecting) {
       fetchChatHistory();
     }
   };
@@ -126,7 +140,7 @@ const ChatPage = () => {
         if (!stompClient.current) {
           stompClient.current = new Client({
             webSocketFactory: () =>
-              new SockJS(`${process.env.REACT_APP_WEBSOCKET_URL}/ws-stomp`),
+              new SockJS(`${import.meta.env.VITE_WEBSOCKET_URL}/ws-stomp`),
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
@@ -137,12 +151,25 @@ const ChatPage = () => {
 
             onConnect: (conn) => {
               console.log('Connected: ' + conn);
-              stompClient.current.subscribe(`/sub/${roomId}`, (message) => {
+              stompClient.current?.subscribe(`/sub/${roomId}`, (message) => {
                 console.log('Received: ', JSON.parse(message.body));
                 setIsScrolledToBottom(true);
                 setMessages((prev) => {
                   return [JSON.parse(message.body), ...prev];
                 });
+              });
+
+              stompClient.current?.subscribe('/sub/global', (message) => {
+                const body = JSON.parse(message.body);
+                if (body.type === 'SHUTDOWN') {
+                  console.log(
+                    'Server is restarting, attempting to reconnect...'
+                  );
+                  stompClient.current?.deactivate();
+                  stompClient.current = null;
+                  stompHandler().connect();
+                }
+                console.log('Received: ', JSON.parse(message.body));
               });
             },
 
@@ -166,13 +193,13 @@ const ChatPage = () => {
         }
 
         return () => {
-          stompClient.current.deactivate();
+          stompClient.current?.deactivate();
         };
       },
 
       sendMessage: () => {
         if (text) {
-          stompClient.current.publish({
+          stompClient.current?.publish({
             destination: `/pub/chat/${roomId}`,
             body: JSON.stringify({
               message: text,
@@ -260,17 +287,17 @@ const ChatPage = () => {
                 )}
                 <div
                   className={`mb-1 flex flex-col ${
-                    message.sender === myInfo.id ? 'items-end' : 'items-start'
+                    message.sender === myInfo?.id ? 'items-end' : 'items-start'
                   }`}
                 >
-                  {message.sender !== myInfo.id && isShowNickname && (
+                  {message.sender !== myInfo?.id && isShowNickname && (
                     <span className='text-sm text-gray-600 mb-1 ml-2'>
                       {message.nickname}
                     </span>
                   )}
 
                   <div className='flex items-end gap-2'>
-                    {message.sender === myInfo.id && isShowTime && (
+                    {message.sender === myInfo?.id && isShowTime && (
                       <span className='text-xs text-gray-500 mb-1'>
                         {moment(message.sendAt).format('HH:mm')}
                       </span>
@@ -278,14 +305,14 @@ const ChatPage = () => {
                     <div
                       className={`break-all px-4 py-2 text-gray-800 rounded-2xl
                         ${
-                          message.sender === myInfo.id
+                          message.sender === myInfo?.id
                             ? 'bg-indigo-500 text-white rounded-tr-none'
                             : 'bg-gray-100 rounded-tl-none'
                         }`}
                     >
                       {message.message}
                     </div>
-                    {message.sender !== myInfo.id && isShowTime && (
+                    {message.sender !== myInfo?.id && isShowTime && (
                       <span className='text-xs text-gray-500 mb-1'>
                         {moment(message.sendAt).format('HH:mm')}
                       </span>
