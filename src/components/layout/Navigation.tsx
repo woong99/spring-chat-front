@@ -3,8 +3,8 @@ import { NavLink } from 'react-router-dom';
 
 const Navigation = () => {
   return (
-    <nav className='bg-white border-t'>
-      <div className='flex justify-around'>
+    <nav className='bg-white border-t h-16'>
+      <div className='flex justify-around h-full'>
         <NavLink
           to='/'
           className={({ isActive }) =>

@@ -4,7 +4,6 @@ import { EventSourcePolyfill, MessageEvent } from 'event-source-polyfill';
 import { getCookie } from '../utils/CookieUtils';
 import api from '../api/axios';
 import moment from 'moment';
-import { FaPlus } from 'react-icons/fa';
 
 // EventSourceEventMap 인터페이스 확장
 declare module 'event-source-polyfill' {
@@ -21,10 +20,10 @@ const MyChatRoomPage = () => {
     chatRoomName: string;
     participantCount: number;
     unreadMessageCount: number;
+    hasMoreUnreadMessage: boolean;
   };
 
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
-  const [newRoomName, setNewRoomName] = useState('');
   const navigate = useNavigate();
 
   // SSE 연결 설정
@@ -104,23 +103,12 @@ const MyChatRoomPage = () => {
   const fetchChatRooms = async () => {
     try {
       const response = await api.get('/chat-room/my-list');
+      response.data.data.forEach((room: ChatRoom) => {
+        room.hasMoreUnreadMessage = room.unreadMessageCount > 99;
+      });
       setChatRooms(response.data.data);
     } catch (error) {
       console.error('채팅방 목록 조회 실패:', error);
-    }
-  };
-
-  // 채팅방 생성 함수
-  const createChatRoom = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!newRoomName.trim()) return;
-
-    try {
-      await api.post('/chat-room', { name: newRoomName });
-      setNewRoomName('');
-      fetchChatRooms(); // 채팅방 생성 후 목록 새로고침
-    } catch (error) {
-      console.error('채팅방 생성 실패:', error);
     }
   };
 
@@ -147,36 +135,20 @@ const MyChatRoomPage = () => {
   };
 
   return (
-    <div className='max-w-screen-md mx-auto h-screen flex flex-col'>
+    <div className='max-w-screen-md mx-auto h-full flex flex-col'>
       {/* 헤더 */}
-      <div className='bg-white px-4 py-5 flex items-center border-b relative shadow-sm'>
+      <div className='bg-white px-4 py-4 flex items-center border-b relative shadow-sm'>
         <span className='font-semibold flex-1 text-center text-lg'>채팅</span>
       </div>
 
       {/* 컨텐츠 영역 */}
-      <div className='flex-1 overflow-y-auto p-4'>
-        {/* 채팅방 생성 폼 */}
-        <form onSubmit={createChatRoom} className='mb-6 flex gap-2'>
-          <input
-            type='text'
-            value={newRoomName}
-            onChange={(e) => setNewRoomName(e.target.value)}
-            placeholder='새로운 채팅방 이름'
-            className='flex-1 p-3 border border-gray-300 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors text-gray-600 placeholder-gray-400'
-          />
-          <button
-            type='submit'
-            className='px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition-colors font-medium shadow-sm hover:shadow flex items-center gap-2'
-          >
-            <FaPlus size={16} />방 만들기
-          </button>
-        </form>
-
+      <div className='flex-1 overflow-y-auto p-4 custom-scrollbar'>
         {/* 채팅방 목록 */}
-        <div className='space-y-3'>
+        <div className=''>
           {chatRooms.map((room) => (
             <button
               key={room.chatRoomId}
+              // className='w-full text-left flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[76px]'
               className='w-full text-left flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[76px]'
               onClick={() => navigate(`/chat/${room.chatRoomId}`)}
             >
@@ -186,7 +158,7 @@ const MyChatRoomPage = () => {
                     {room.chatRoomName}
                   </h3>
                   <span className='text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full whitespace-nowrap'>
-                    {room.participantCount}명 참여중
+                    {room.participantCount}명
                   </span>
                 </div>
                 <p className='text-sm text-gray-500 mt-1.5 line-clamp-1'>
@@ -197,10 +169,14 @@ const MyChatRoomPage = () => {
                 <p className='text-xs text-gray-400 whitespace-nowrap'>
                   {formatTime(room.lastSendAt)}
                 </p>
-                {room.unreadMessageCount > 0 && (
+                {room.unreadMessageCount > 0 ? (
                   <span className='inline-flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-xs font-medium rounded-full px-1.5 mt-1.5'>
-                    {room.unreadMessageCount}
+                    {room.hasMoreUnreadMessage
+                      ? '99+'
+                      : room.unreadMessageCount}
                   </span>
+                ) : (
+                  <span className='inline-flex min-w-[20px] h-5 px-1.5 mt-1.5'></span>
                 )}
               </div>
             </button>

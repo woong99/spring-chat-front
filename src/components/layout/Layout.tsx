@@ -8,7 +8,7 @@ const Layout = () => {
   return (
     <div className='min-h-screen bg-gray-50'>
       <div className='max-w-md mx-auto h-screen flex flex-col bg-white shadow-lg'>
-        <div className='flex-1 overflow-hidden'>
+        <div className='flex-1 overflow-hidden h-full'>
           <Outlet />
         </div>
         {!hideNavigation && <Navigation />}
