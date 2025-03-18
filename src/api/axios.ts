@@ -1,11 +1,11 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { getCookie } from '../utils/CookieUtils.ts';
 
-const api: AxiosInstance = axios.create({
+const instance: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
-api.interceptors.request.use(
+instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getCookie('accessToken');
     if (token) {
@@ -18,4 +18,4 @@ api.interceptors.request.use(
   }
 );
 
-export default api;
+export default instance;
