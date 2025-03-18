@@ -6,10 +6,19 @@ import Layout from './components/layout/Layout';
 import PrivateRoute from './components/route/PrivateRoute';
 import MyChatRoomPage from './pages/MyChatRoomPage';
 import ChatPage from './pages/ChatPage';
+import FindFriendPage from './pages/FindFriendPage';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer
+        position='top-center'
+        autoClose={1000}
+        pauseOnHover={false}
+        hideProgressBar
+        closeOnClick
+      />
       <Routes>
         <Route
           path='/login'
@@ -41,6 +50,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ChatPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/find-friend'
+            element={
+              <PrivateRoute>
+                <FindFriendPage />
               </PrivateRoute>
             }
           />
