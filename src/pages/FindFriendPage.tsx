@@ -1,6 +1,6 @@
-import Friend from '../components/find-friend/Friend';
 import Header from '../components/layout/Header';
 import MyInfo from '../components/find-friend/MyInfo';
+import FriendList from '../components/find-friend/FriendList';
 
 const FindFriendPage = () => {
   return (
@@ -11,17 +11,9 @@ const FindFriendPage = () => {
       {/* 내 프로필 */}
       <MyInfo />
 
-      <div className='flex-1 overflow-y-auto p-4 custom-scrollbar'>
+      <div className='flex-1 p-4 h-[calc(100%-200px)]'>
         {/* 친구 목록 */}
-        <div>
-          <Friend />
-          <Friend />
-          <Friend />
-          <Friend />
-          <Friend />
-          <Friend />
-          <Friend />
-        </div>
+        <FriendList />
       </div>
     </div>
   );
