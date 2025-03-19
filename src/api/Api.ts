@@ -9,6 +9,7 @@ export type AuthInfo = {
 };
 
 export type UseFlag = 'Y' | 'N';
+export type FriendshipStatus = 'FRIEND' | 'BLOCKED';
 
 export interface UpdateMyInfo {
   nickname: string;
@@ -22,6 +23,12 @@ export type AllFriendInfo = {
   nickname: string;
   profileImageUrl?: string;
   introduction?: string;
+  friendshipStatus?: FriendshipStatus;
+};
+
+export type ChangeFriendshipStatus = {
+  friendId: number;
+  status: FriendshipStatus;
 };
 
 export interface ScrollPagingResponse<T> {
@@ -55,6 +62,13 @@ export class Api {
         searchQuery,
       },
     });
+    return response.data.data;
+  }
+
+  static async changeFriendshipStatus(
+    data: ChangeFriendshipStatus
+  ): Promise<void> {
+    const response = await instance.put(`/friends/status`, data);
     return response.data.data;
   }
 }

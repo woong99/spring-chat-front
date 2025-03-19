@@ -9,7 +9,6 @@ export const useIntersectionObserver = (
 
   useEffect(() => {
     if (targetRef && targetRef.current) {
-      console.log('targetRef', targetRef.current);
       observer.current = new IntersectionObserver(onIntersect, {
         root: null,
         rootMargin: '0px',

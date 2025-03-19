@@ -1,35 +1,78 @@
-import { FaUser } from 'react-icons/fa';
-import { AllFriendInfo } from '../../api/api';
-const Friend = ({ friend }: { friend: AllFriendInfo }) => {
-  return (
-    <button className='w-full text-left flex items-center justify-between px-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[64px]'>
-      {/* 사용자 프로필 이미지 */}
-      <div className='mr-3 flex-shrink-0'>
-        {friend.profileImageUrl ? (
-          <img
-            src={friend.profileImageUrl}
-            alt='profile'
-            className='w-10 h-10 rounded-2xl object-cover'
-          />
-        ) : (
-          <div className='w-10 h-10 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
-            <FaUser className='text-indigo-500 text-xl' />
-          </div>
-        )}
-      </div>
+import { FaUser, FaBan } from 'react-icons/fa';
+import { IoChatbubbleEllipses } from 'react-icons/io5';
+import { AllFriendInfo } from '../../api/Api';
+import { useState } from 'react';
+import EditFriendship from './EditFriendship';
 
-      <div className='flex-1 min-w-0 flex flex-col justify-center'>
-        <div className='flex items-center gap-2'>
-          <h3 className='font-semibold text-gray-800 line-clamp-1'>
-            {friend.nickname}
-          </h3>
+const Friend = ({ friend }: { friend: AllFriendInfo }) => {
+  const [isEditFriendshipModalOpen, setIsEditFriendshipModalOpen] =
+    useState(false);
+
+  const renderFriendshipStatus = () => {
+    if (friend.friendshipStatus === 'FRIEND') {
+      return (
+        <span className='px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-full border border-indigo-100 shadow-sm hover:shadow-md hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700 transition-all duration-200'>
+          <div className='flex items-center gap-1.5 cursor-pointer'>
+            <IoChatbubbleEllipses className='text-indigo-500 group-hover:text-indigo-600' />
+            <span>채팅</span>
+          </div>
+        </span>
+      );
+    } else if (friend.friendshipStatus === 'BLOCKED') {
+      return (
+        <span className='px-3 py-1.5 text-sm font-medium text-gray-500 bg-gray-50 rounded-full border border-gray-100 shadow-sm transition-all duration-200'>
+          <div className='flex items-center gap-1.5'>
+            <FaBan className='text-gray-400' />
+            <span>차단</span>
+          </div>
+        </span>
+      );
+    }
+  };
+
+  return (
+    <>
+      <div
+        className='w-full text-left flex items-center justify-between px-4 bg-white rounded-xl shadow-sm transition-all duration-200 border border-gray-100 min-h-[64px] cursor-pointer'
+        onClick={() => setIsEditFriendshipModalOpen(true)}
+      >
+        {/* 사용자 프로필 이미지 */}
+        <div className='mr-3 flex-shrink-0'>
+          {friend.profileImageUrl ? (
+            <img
+              src={friend.profileImageUrl}
+              alt='profile'
+              className='w-10 h-10 rounded-2xl object-cover'
+            />
+          ) : (
+            <div className='w-10 h-10 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
+              <FaUser className='text-indigo-500 text-xl' />
+            </div>
+          )}
         </div>
-        <p className='text-sm text-gray-500 mt-1 line-clamp-1'>
-          {friend.introduction}
-        </p>
+
+        <div className='flex-1 min-w-0 flex flex-col justify-center'>
+          <div className='flex items-center gap-2'>
+            <h3 className='font-semibold text-gray-800 line-clamp-1'>
+              {friend.nickname}
+            </h3>
+          </div>
+          <p className='text-sm text-gray-500 mt-1 line-clamp-1'>
+            {friend.introduction}
+          </p>
+        </div>
+        <div className='text-right ml-4 flex items-center justify-center h-full'>
+          {renderFriendshipStatus()}
+        </div>
       </div>
-      <div className='text-right ml-4 flex items-center justify-center h-full'></div>
-    </button>
+      {isEditFriendshipModalOpen && (
+        <EditFriendship
+          isModalOpen={isEditFriendshipModalOpen}
+          closeModal={() => setIsEditFriendshipModalOpen(false)}
+          friend={friend}
+        />
+      )}
+    </>
   );
 };
 

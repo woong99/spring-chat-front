@@ -1,7 +1,7 @@
 import Modal from 'react-modal';
 import { FaCamera, FaTimes, FaUser } from 'react-icons/fa';
 import { useState, useRef } from 'react';
-import { Api, AuthInfo, UpdateMyInfo, UseFlag } from '../../api/api';
+import { Api, AuthInfo, UpdateMyInfo, UseFlag } from '../../api/Api';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import ImageSelectModal from './ImageSelectModal';

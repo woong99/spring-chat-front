@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Api, AllFriendInfo, ScrollPagingResponse } from '../../api/api';
+import { Api, AllFriendInfo, ScrollPagingResponse } from '../../api/Api';
 import Friend from './Friend';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObjectser';
 import { useRef, useState } from 'react';
