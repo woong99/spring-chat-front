@@ -1,17 +1,38 @@
 import { FaUser, FaBan } from 'react-icons/fa';
 import { IoChatbubbleEllipses } from 'react-icons/io5';
-import { AllFriendInfo } from '../../api/Api';
+import { AllFriendInfo, Api } from '../../api/Api';
 import { useState } from 'react';
 import EditFriendship from './EditFriendship';
+import { useMutation } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const Friend = ({ friend }: { friend: AllFriendInfo }) => {
+  const navigate = useNavigate();
+
+  const { mutate: getPrivateChatRoomId } = useMutation({
+    mutationFn: () => Api.getPrivateChatRoomId(friend.id),
+    onSuccess: (data) => {
+      navigate(`/chat/${data.chatRoomId}`);
+    },
+    onError: () => {
+      toast.error('채팅방 이동에 실패했습니다.');
+    },
+  });
+
   const [isEditFriendshipModalOpen, setIsEditFriendshipModalOpen] =
     useState(false);
 
   const renderFriendshipStatus = () => {
     if (friend.friendshipStatus === 'FRIEND') {
       return (
-        <span className='px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-full border border-indigo-100 shadow-sm hover:shadow-md hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700 transition-all duration-200'>
+        <span
+          className='px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-full border border-indigo-100 shadow-sm hover:shadow-md hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700 transition-all duration-200'
+          onClick={(e) => {
+            e.stopPropagation();
+            getPrivateChatRoomId();
+          }}
+        >
           <div className='flex items-center gap-1.5 cursor-pointer'>
             <IoChatbubbleEllipses className='text-indigo-500 group-hover:text-indigo-600' />
             <span>채팅</span>

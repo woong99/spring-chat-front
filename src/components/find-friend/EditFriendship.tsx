@@ -12,6 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { InfiniteData } from '@tanstack/react-query';
 import { MoonLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const EditFriendship = ({
   isModalOpen,
@@ -22,6 +23,7 @@ const EditFriendship = ({
   closeModal: () => void;
   friend: AllFriendInfo;
 }) => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   // 모달 스타일 설정
@@ -100,6 +102,7 @@ const EditFriendship = ({
 `;
   document.head.appendChild(style);
 
+  // 친구 상태 변경
   const { mutate: changeFriendshipStatus, isPending: isLoading } = useMutation({
     mutationFn: (data: ChangeFriendshipStatus) =>
       Api.changeFriendshipStatus(data),
@@ -171,11 +174,25 @@ const EditFriendship = ({
     },
   });
 
+  // 채팅방 이동
+  const { mutate: getPrivateChatRoomId } = useMutation({
+    mutationFn: () => Api.getPrivateChatRoomId(friend.id),
+    onSuccess: (data) => {
+      navigate(`/chat/${data.chatRoomId}`);
+    },
+    onError: () => {
+      toast.error('채팅방 이동에 실패했습니다.');
+    },
+  });
+
   const renderHandleButton = () => {
     if (friend.friendshipStatus === 'FRIEND') {
       return (
         <div className='flex gap-3'>
-          <span className='px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-full border border-indigo-100 shadow-sm hover:shadow-md hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700 transition-all duration-200 cursor-pointer'>
+          <span
+            className='px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-full border border-indigo-100 shadow-sm hover:shadow-md hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700 transition-all duration-200 cursor-pointer'
+            onClick={() => getPrivateChatRoomId()}
+          >
             <div className='flex items-center gap-1.5'>
               <IoChatbubbleEllipses className='text-indigo-500' />
               <span>채팅</span>

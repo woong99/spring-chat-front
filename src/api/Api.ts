@@ -38,6 +38,10 @@ export interface ScrollPagingResponse<T> {
   page: number;
 }
 
+export type PrivateChatRoomId = {
+  chatRoomId: string;
+};
+
 export class Api {
   static async getMyInfo(): Promise<AuthInfo> {
     const response = await instance.get('/auth/me');
@@ -72,6 +76,13 @@ export class Api {
     data: ChangeFriendshipStatus
   ): Promise<void> {
     const response = await instance.put(`/friends/status`, data);
+    return response.data.data;
+  }
+
+  static async getPrivateChatRoomId(
+    friendId: number
+  ): Promise<PrivateChatRoomId> {
+    const response = await instance.get(`/chat-room/private/${friendId}`);
     return response.data.data;
   }
 }
