@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EventSourcePolyfill, MessageEvent } from 'event-source-polyfill';
 import { getCookie } from '../utils/CookieUtils';
-import api from '../api/axios';
 import moment from 'moment';
+import { Api, MyChatRoom } from '../api/Api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { FaUserPlus } from 'react-icons/fa';
 
 // EventSourceEventMap 인터페이스 확장
 declare module 'event-source-polyfill' {
@@ -13,18 +15,14 @@ declare module 'event-source-polyfill' {
 }
 
 const MyChatRoomPage = () => {
-  type ChatRoom = {
-    chatRoomId: string;
-    lastMessage: string | null;
-    lastSendAt: string | null;
-    chatRoomName: string;
-    participantCount: number;
-    unreadMessageCount: number;
-    hasMoreUnreadMessage: boolean;
-  };
-
-  const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // 내 채팅방 목록 조회
+  const { data: myChatRooms } = useQuery({
+    queryKey: ['myChatRooms'],
+    queryFn: () => Api.getMyChatRooms(),
+  });
 
   // SSE 연결 설정
   useEffect(() => {
@@ -49,7 +47,8 @@ const MyChatRoomPage = () => {
       'UNREAD_MESSAGE_COUNT',
       (event: MessageEvent) => {
         const updatedRoom = JSON.parse(event.data);
-        setChatRooms((prevRooms) => {
+        queryClient.setQueryData(['myChatRooms'], (prevRooms: MyChatRoom[]) => {
+          // return prevRooms.map((prevRoom) =>{
           // 채팅방 목록 중 업데이트된 채팅방을 찾아서 업데이트
           const updatedRooms = prevRooms.map((room) =>
             room.chatRoomId === updatedRoom.chatRoomId
@@ -93,25 +92,6 @@ const MyChatRoomPage = () => {
     };
   }, []);
 
-  // 초기 채팅방 목록 로딩
-  useEffect(() => {
-    console.log('초기 채팅방 목록 로딩');
-    fetchChatRooms();
-  }, []);
-
-  // 채팅방 목록 가져오기
-  const fetchChatRooms = async () => {
-    try {
-      const response = await api.get('/chat-room/my-list');
-      response.data.data.forEach((room: ChatRoom) => {
-        room.hasMoreUnreadMessage = room.unreadMessageCount > 99;
-      });
-      setChatRooms(response.data.data);
-    } catch (error) {
-      console.error('채팅방 목록 조회 실패:', error);
-    }
-  };
-
   // 시간 포맷 함수 추가
   const formatTime = (time: string | null) => {
     if (!time) return '';
@@ -145,42 +125,52 @@ const MyChatRoomPage = () => {
       <div className='flex-1 overflow-y-auto p-4 custom-scrollbar'>
         {/* 채팅방 목록 */}
         <div className=''>
-          {chatRooms.map((room) => (
-            <button
-              key={room.chatRoomId}
-              // className='w-full text-left flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[76px]'
-              className='w-full text-left flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[76px]'
-              onClick={() => navigate(`/chat/${room.chatRoomId}`)}
-            >
-              <div className='flex-1 min-w-0 flex flex-col justify-center'>
-                <div className='flex items-center gap-2'>
-                  <h3 className='font-semibold text-gray-800 line-clamp-1'>
-                    {room.chatRoomName}
-                  </h3>
-                  <span className='text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full whitespace-nowrap'>
-                    {room.participantCount}명
-                  </span>
+          {myChatRooms?.length === 0 ? (
+            <div className='flex flex-col items-center justify-center h-[calc(100vh-200px)] text-gray-500'>
+              <FaUserPlus className='w-16 h-16 mb-4 text-indigo-400 animate-bounce' />
+              <p className='text-lg font-medium mb-2'>채팅방이 없습니다</p>
+              <p className='text-sm'>친구 찾기에서 친구를 추가하고</p>
+              <p className='text-sm'>대화를 시작해보세요!</p>
+            </div>
+          ) : (
+            myChatRooms?.map((room) => (
+              <button
+                key={room.chatRoomId}
+                className='w-full text-left flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[76px]'
+                onClick={() => navigate(`/chat/${room.chatRoomId}`)}
+              >
+                <div className='flex-1 min-w-0 flex flex-col justify-center'>
+                  <div className='flex items-center gap-2'>
+                    <h3 className='font-semibold text-gray-800 line-clamp-1'>
+                      {room.chatRoomName}
+                    </h3>
+                    {room.chatRoomType === 'GROUP' && (
+                      <span className='text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full whitespace-nowrap'>
+                        {room.participantCount}명
+                      </span>
+                    )}
+                  </div>
+                  <p className='text-sm text-gray-500 mt-1.5 line-clamp-1'>
+                    {room.lastMessage || '메시지가 없습니다.'}
+                  </p>
                 </div>
-                <p className='text-sm text-gray-500 mt-1.5 line-clamp-1'>
-                  {room.lastMessage || '메시지가 없습니다.'}
-                </p>
-              </div>
-              <div className='text-right ml-4 flex flex-col items-end justify-center h-full'>
-                <p className='text-xs text-gray-400 whitespace-nowrap'>
-                  {formatTime(room.lastSendAt)}
-                </p>
-                {room.unreadMessageCount > 0 ? (
-                  <span className='inline-flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-xs font-medium rounded-full px-1.5 mt-1.5'>
-                    {room.hasMoreUnreadMessage
-                      ? '99+'
-                      : room.unreadMessageCount}
-                  </span>
-                ) : (
-                  <span className='inline-flex min-w-[20px] h-5 px-1.5 mt-1.5'></span>
-                )}
-              </div>
-            </button>
-          ))}
+                <div className='text-right ml-4 flex flex-col items-end justify-center h-full'>
+                  <p className='text-xs text-gray-400 whitespace-nowrap'>
+                    {formatTime(room.lastSendAt)}
+                  </p>
+                  {room.unreadMessageCount > 0 ? (
+                    <span className='inline-flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-xs font-medium rounded-full px-1.5 mt-1.5'>
+                      {room.unreadMessageCount > 99
+                        ? '99+'
+                        : room.unreadMessageCount}
+                    </span>
+                  ) : (
+                    <span className='inline-flex min-w-[20px] h-5 px-1.5 mt-1.5'></span>
+                  )}
+                </div>
+              </button>
+            ))
+          )}
         </div>
       </div>
     </div>

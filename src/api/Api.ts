@@ -11,6 +11,7 @@ export type AuthInfo = {
 export type UseFlag = 'Y' | 'N';
 export type FriendshipStatus = 'FRIEND' | 'BLOCKED';
 export type FriendshipStatusFilter = 'ALL' | 'FRIEND' | 'BLOCKED';
+export type ChatRoomType = 'PRIVATE' | 'GROUP';
 
 export interface UpdateMyInfo {
   nickname: string;
@@ -40,6 +41,16 @@ export interface ScrollPagingResponse<T> {
 
 export type PrivateChatRoomId = {
   chatRoomId: string;
+};
+
+export type MyChatRoom = {
+  chatRoomId: string;
+  chatRoomName: string;
+  chatRoomType: ChatRoomType;
+  participantCount: number;
+  unreadMessageCount: number;
+  lastMessage: string;
+  lastSendAt: string;
 };
 
 export class Api {
@@ -83,6 +94,11 @@ export class Api {
     friendId: number
   ): Promise<PrivateChatRoomId> {
     const response = await instance.get(`/chat-room/private/${friendId}`);
+    return response.data.data;
+  }
+
+  static async getMyChatRooms(): Promise<MyChatRoom[]> {
+    const response = await instance.get('/chat-room/my-list');
     return response.data.data;
   }
 }

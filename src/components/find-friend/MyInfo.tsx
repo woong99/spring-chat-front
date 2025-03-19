@@ -3,7 +3,7 @@ import { FaUser } from 'react-icons/fa';
 import { useState } from 'react';
 import EditMyInfo from './EditMyInfo';
 import { useQuery } from '@tanstack/react-query';
-import { Api } from '../../api/api';
+import { Api } from '../../api/Api';
 
 const MyInfo = () => {
   const { data: authInfo, isLoading } = useQuery({
