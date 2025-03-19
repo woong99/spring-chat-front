@@ -10,6 +10,7 @@ export type AuthInfo = {
 
 export type UseFlag = 'Y' | 'N';
 export type FriendshipStatus = 'FRIEND' | 'BLOCKED';
+export type FriendshipStatusFilter = 'ALL' | 'FRIEND' | 'BLOCKED';
 
 export interface UpdateMyInfo {
   nickname: string;
@@ -54,12 +55,14 @@ export class Api {
 
   static async getAllFriends(
     page: number,
-    searchQuery?: string
+    searchQuery?: string,
+    filter?: FriendshipStatusFilter
   ): Promise<ScrollPagingResponse<AllFriendInfo>> {
     const response = await instance.get(`/friends`, {
       params: {
         page,
         searchQuery,
+        filter,
       },
     });
     return response.data.data;

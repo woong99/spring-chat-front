@@ -6,8 +6,10 @@ import {
   AllFriendInfo,
   ChangeFriendshipStatus,
   FriendshipStatus,
+  ScrollPagingResponse,
 } from '../../api/Api';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { InfiniteData } from '@tanstack/react-query';
 import { MoonLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 
@@ -20,6 +22,8 @@ const EditFriendship = ({
   closeModal: () => void;
   friend: AllFriendInfo;
 }) => {
+  const queryClient = useQueryClient();
+
   // 모달 스타일 설정
   const modalStyles = {
     overlay: {
@@ -100,7 +104,67 @@ const EditFriendship = ({
     mutationFn: (data: ChangeFriendshipStatus) =>
       Api.changeFriendshipStatus(data),
     onSuccess: (_, variables) => {
-      friend.friendshipStatus = variables.status;
+      // 캐시에서 현재 상태 가져오기
+      const queries = queryClient.getQueriesData<
+        InfiniteData<ScrollPagingResponse<AllFriendInfo>>
+      >({
+        queryKey: ['all-friends'],
+      });
+
+      // 각 쿼리 캐시 업데이트
+      queries.forEach(([queryKey]) => {
+        queryClient.setQueryData(
+          queryKey,
+          (
+            old: InfiniteData<ScrollPagingResponse<AllFriendInfo>> | undefined
+          ) => {
+            if (!old) return old;
+
+            // 각 페이지의 데이터 업데이트
+            const updatedPages = old.pages.map((page) => ({
+              ...page,
+              data: page.data
+                .map((item: AllFriendInfo) => {
+                  // 현재 필터가 'FRIEND'이고 차단으로 변경된 경우 null 반환
+                  if (
+                    queryKey[2] === 'FRIEND' &&
+                    variables.status === 'BLOCKED' &&
+                    item.id === friend.id
+                  ) {
+                    return null;
+                  }
+                  // 현재 필터가 'BLOCKED'이고 친구로 변경된 경우 null 반환
+                  if (
+                    queryKey[2] === 'BLOCKED' &&
+                    variables.status === 'FRIEND' &&
+                    item.id === friend.id
+                  ) {
+                    return null;
+                  }
+                  // 해당 사용자의 상태 업데이트
+                  if (item.id === friend.id) {
+                    return { ...item, friendshipStatus: variables.status };
+                  }
+                  return item;
+                })
+                .filter((item): item is AllFriendInfo => item !== null),
+            }));
+
+            return {
+              ...old,
+              pages: updatedPages,
+            };
+          }
+        );
+      });
+
+      closeModal();
+
+      if (variables.status === 'BLOCKED') {
+        toast.success('사용자를 차단했습니다.');
+      } else if (variables.status === 'FRIEND') {
+        toast.success('친구 상태가 변경되었습니다.');
+      }
     },
     onError: () => {
       toast.error('수정에 실패했습니다.');
