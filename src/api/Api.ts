@@ -51,6 +51,7 @@ export type MyChatRoom = {
   unreadMessageCount: number;
   lastMessage: string;
   lastSendAt: string;
+  profileImageUrl: string;
 };
 
 export class Api {

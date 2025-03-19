@@ -5,7 +5,7 @@ import { getCookie } from '../utils/CookieUtils';
 import moment from 'moment';
 import { Api, MyChatRoom } from '../api/Api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { FaUserPlus } from 'react-icons/fa';
+import { FaUserPlus, FaUsers, FaUser } from 'react-icons/fa';
 
 // EventSourceEventMap 인터페이스 확장
 declare module 'event-source-polyfill' {
@@ -139,6 +139,25 @@ const MyChatRoomPage = () => {
                 className='w-full text-left flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[76px]'
                 onClick={() => navigate(`/chat/${room.chatRoomId}`)}
               >
+                {/* 프로필 이미지 */}
+                <div className='mr-3 flex-shrink-0'>
+                  {room.chatRoomType === 'GROUP' ? (
+                    <div className='w-12 h-12 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
+                      <FaUsers className='text-indigo-500 text-xl' />
+                    </div>
+                  ) : room.profileImageUrl ? (
+                    <img
+                      src={room.profileImageUrl}
+                      alt='profile'
+                      className='w-12 h-12 rounded-2xl object-cover'
+                    />
+                  ) : (
+                    <div className='w-12 h-12 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
+                      <FaUser className='text-indigo-500 text-xl' />
+                    </div>
+                  )}
+                </div>
+
                 <div className='flex-1 min-w-0 flex flex-col justify-center'>
                   <div className='flex items-center gap-2'>
                     <h3 className='font-semibold text-gray-800 line-clamp-1'>
