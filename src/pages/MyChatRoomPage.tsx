@@ -1,11 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EventSourcePolyfill, MessageEvent } from 'event-source-polyfill';
 import { getCookie } from '../utils/CookieUtils';
 import moment from 'moment';
 import { Api, MyChatRoom } from '../api/Api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { FaUserPlus, FaUsers, FaUser } from 'react-icons/fa';
+import { FaUserPlus, FaUsers, FaUser, FaSearch } from 'react-icons/fa';
+import Header from '../components/my-chat-room/Header';
+import { useDebounce } from 'use-debounce';
 
 // EventSourceEventMap 인터페이스 확장
 declare module 'event-source-polyfill' {
@@ -17,12 +19,29 @@ declare module 'event-source-polyfill' {
 const MyChatRoomPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchValue, setSearchValue] = useState('');
+  const [debouncedValue] = useDebounce(searchValue, 300);
 
   // 내 채팅방 목록 조회
   const { data: myChatRooms } = useQuery({
     queryKey: ['myChatRooms'],
     queryFn: () => Api.getMyChatRooms(),
   });
+
+  // 검색어로 채팅방 필터링
+  const filteredChatRooms = useMemo(() => {
+    return myChatRooms?.filter(
+      (room) =>
+        !debouncedValue ||
+        room.chatRoomName.toLowerCase().includes(debouncedValue.toLowerCase())
+    );
+  }, [myChatRooms, debouncedValue]);
+
+  // 검색어 입력 핸들러
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
+  };
 
   // SSE 연결 설정
   useEffect(() => {
@@ -117,23 +136,37 @@ const MyChatRoomPage = () => {
   return (
     <div className='max-w-screen-md mx-auto h-full flex flex-col'>
       {/* 헤더 */}
-      <div className='bg-white px-4 py-4 flex items-center border-b relative shadow-sm'>
-        <span className='font-semibold flex-1 text-center text-lg'>채팅</span>
-      </div>
+      <Header
+        searchInputRef={searchInputRef}
+        onSearch={handleSearchChange}
+        searchInputValue={searchValue}
+      />
 
       {/* 컨텐츠 영역 */}
       <div className='flex-1 overflow-y-auto p-4 custom-scrollbar'>
         {/* 채팅방 목록 */}
         <div className=''>
-          {myChatRooms?.length === 0 ? (
+          {filteredChatRooms?.length === 0 ? (
             <div className='flex flex-col items-center justify-center h-[calc(100vh-200px)] text-gray-500'>
-              <FaUserPlus className='w-16 h-16 mb-4 text-indigo-400 animate-bounce' />
-              <p className='text-lg font-medium mb-2'>채팅방이 없습니다</p>
-              <p className='text-sm'>친구 찾기에서 친구를 추가하고</p>
-              <p className='text-sm'>대화를 시작해보세요!</p>
+              {debouncedValue ? (
+                <>
+                  <FaSearch className='w-16 h-16 mb-4 text-gray-400' />
+                  <p className='text-lg font-medium mb-2'>
+                    검색 결과가 없습니다
+                  </p>
+                  <p className='text-sm'>다른 검색어로 다시 시도해보세요</p>
+                </>
+              ) : (
+                <>
+                  <FaUserPlus className='w-16 h-16 mb-4 text-indigo-400 animate-bounce' />
+                  <p className='text-lg font-medium mb-2'>채팅방이 없습니다</p>
+                  <p className='text-sm'>친구 찾기에서 친구를 추가하고</p>
+                  <p className='text-sm'>대화를 시작해보세요!</p>
+                </>
+              )}
             </div>
           ) : (
-            myChatRooms?.map((room) => (
+            filteredChatRooms?.map((room) => (
               <button
                 key={room.chatRoomId}
                 className='w-full text-left flex items-center justify-between p-4 bg-white rounded-xl shadow-sm hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-100 hover:border-indigo-100 min-h-[76px]'
@@ -165,7 +198,10 @@ const MyChatRoomPage = () => {
                     </h3>
                     {room.chatRoomType === 'GROUP' && (
                       <span className='text-xs font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full whitespace-nowrap'>
-                        {room.participantCount}명
+                        <div className='flex items-center gap-1'>
+                          <FaUser className='text-indigo-500 text-xs' />
+                          {room.participantCount}
+                        </div>
                       </span>
                     )}
                   </div>
