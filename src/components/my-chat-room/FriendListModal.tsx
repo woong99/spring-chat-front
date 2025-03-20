@@ -5,7 +5,6 @@ import {
   FaSearch,
   FaUserFriends,
   FaCheck,
-  FaUser,
   FaArrowLeft,
 } from 'react-icons/fa';
 import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
@@ -16,6 +15,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { AllFriendInfo } from '../../api/Api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import ProfileImage from '../common/ProfileImage';
 
 interface FriendListModalProps {
   isOpen: boolean;
@@ -305,19 +305,13 @@ const FriendListModal: React.FC<FriendListModalProps> = ({
                       className='flex items-center p-3 hover:bg-gray-50 cursor-pointer transition-colors'
                       onClick={() => handleFriendSelect(friend)}
                     >
-                      <div className='flex-shrink-0 w-10 h-10 rounded-2xl overflow-hidden mr-3'>
-                        {friend.profileImageUrl ? (
-                          <img
-                            src={friend.profileImageUrl}
-                            alt={friend.nickname}
-                            className='w-full h-full object-cover'
-                          />
-                        ) : (
-                          <div className='w-full h-full rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
-                            <FaUser className='text-indigo-500 text-lg' />
-                          </div>
-                        )}
-                      </div>
+                      <ProfileImage
+                        profileImageUrl={friend.profileImageUrl}
+                        defaultIconTextSize='text-lg'
+                        containerClassName='mr-3'
+                        width='10'
+                        height='10'
+                      />
                       <div className='flex-1'>
                         <h3 className='text-sm font-medium text-gray-900'>
                           {friend.nickname}

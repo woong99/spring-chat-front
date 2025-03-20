@@ -1,12 +1,12 @@
 import { FaCog } from 'react-icons/fa';
-import { FaUser } from 'react-icons/fa';
 import { useState } from 'react';
 import EditMyInfo from './EditMyInfo';
 import { useQuery } from '@tanstack/react-query';
 import { Api } from '../../api/Api';
+import ProfileImage from '../common/ProfileImage';
 
 const MyInfo = () => {
-  const { data: authInfo, isLoading } = useQuery({
+  const { data: authInfo } = useQuery({
     queryKey: ['authInfo'],
     queryFn: () => Api.getMyInfo(),
   });
@@ -24,20 +24,13 @@ const MyInfo = () => {
         onClick={openModal}
       >
         {/* 사용자 프로필 이미지 */}
-        <div className='mr-3 flex-shrink-0'>
-          {!isLoading &&
-            (authInfo?.profileImageUrl ? (
-              <img
-                src={authInfo.profileImageUrl}
-                alt='프로필 이미지'
-                className='w-16 h-16 rounded-2xl'
-              />
-            ) : (
-              <div className='w-16 h-16 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
-                <FaUser className='text-indigo-500 text-3xl' />
-              </div>
-            ))}
-        </div>
+        <ProfileImage
+          profileImageUrl={authInfo?.profileImageUrl}
+          containerClassName='mr-3'
+          defaultIconTextSize='text-3xl'
+          width='16'
+          height='16'
+        />
 
         <div className='flex-1 min-w-0 flex flex-col justify-center'>
           <div className='flex items-center gap-2'>

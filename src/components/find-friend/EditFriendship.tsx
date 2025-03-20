@@ -1,5 +1,5 @@
 import Modal from 'react-modal';
-import { FaBan, FaTimes, FaUser, FaUserPlus } from 'react-icons/fa';
+import { FaBan, FaTimes, FaUserPlus } from 'react-icons/fa';
 import { IoChatbubbleEllipses } from 'react-icons/io5';
 import {
   Api,
@@ -13,6 +13,7 @@ import { InfiniteData } from '@tanstack/react-query';
 import { MoonLoader } from 'react-spinners';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import ProfileImage from '../common/ProfileImage';
 
 const EditFriendship = ({
   isModalOpen,
@@ -272,17 +273,12 @@ const EditFriendship = ({
 
           <div className='flex flex-col items-center gap-4'>
             <div className='relative'>
-              {friend.profileImageUrl ? (
-                <img
-                  src={friend.profileImageUrl}
-                  alt='프로필 이미지'
-                  className='w-24 h-24 rounded-2xl object-cover'
-                />
-              ) : (
-                <div className='w-24 h-24 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
-                  <FaUser className='text-indigo-500 text-4xl' />
-                </div>
-              )}
+              <ProfileImage
+                profileImageUrl={friend.profileImageUrl}
+                defaultIconTextSize='text-4xl'
+                width='24'
+                height='24'
+              />
             </div>
             <div className='text-center'>
               <h3 className='text-xl font-semibold text-gray-800'>

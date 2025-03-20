@@ -1,4 +1,4 @@
-import { FaUser, FaBan } from 'react-icons/fa';
+import { FaBan } from 'react-icons/fa';
 import { IoChatbubbleEllipses } from 'react-icons/io5';
 import { AllFriendInfo, Api } from '../../api/Api';
 import { useState } from 'react';
@@ -6,6 +6,7 @@ import EditFriendship from './EditFriendship';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import ProfileImage from '../common/ProfileImage';
 
 const Friend = ({ friend }: { friend: AllFriendInfo }) => {
   const navigate = useNavigate();
@@ -58,19 +59,13 @@ const Friend = ({ friend }: { friend: AllFriendInfo }) => {
         onClick={() => setIsEditFriendshipModalOpen(true)}
       >
         {/* 사용자 프로필 이미지 */}
-        <div className='mr-3 flex-shrink-0'>
-          {friend.profileImageUrl ? (
-            <img
-              src={friend.profileImageUrl}
-              alt='profile'
-              className='w-10 h-10 rounded-2xl object-cover'
-            />
-          ) : (
-            <div className='w-10 h-10 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
-              <FaUser className='text-indigo-500 text-xl' />
-            </div>
-          )}
-        </div>
+        <ProfileImage
+          profileImageUrl={friend.profileImageUrl}
+          containerClassName='mr-3'
+          defaultIconTextSize='text-xl'
+          width='10'
+          height='10'
+        />
 
         <div className='flex-1 min-w-0 flex flex-col justify-center'>
           <div className='flex items-center gap-2'>

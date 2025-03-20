@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FaUserPlus, FaUsers, FaUser, FaSearch } from 'react-icons/fa';
 import Header from '../components/my-chat-room/Header';
 import { useDebounce } from 'use-debounce';
+import ProfileImage from '../components/common/ProfileImage';
 
 // EventSourceEventMap 인터페이스 확장
 declare module 'event-source-polyfill' {
@@ -173,23 +174,21 @@ const MyChatRoomPage = () => {
                 onClick={() => navigate(`/chat/${room.chatRoomId}`)}
               >
                 {/* 프로필 이미지 */}
-                <div className='mr-3 flex-shrink-0'>
-                  {room.chatRoomType === 'GROUP' ? (
+                {room.chatRoomType === 'GROUP' ? (
+                  <div className='mr-3 flex-shrink-0'>
                     <div className='w-12 h-12 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
                       <FaUsers className='text-indigo-500 text-xl' />
                     </div>
-                  ) : room.profileImageUrl ? (
-                    <img
-                      src={room.profileImageUrl}
-                      alt='profile'
-                      className='w-12 h-12 rounded-2xl object-cover'
-                    />
-                  ) : (
-                    <div className='w-12 h-12 rounded-2xl bg-indigo-100 overflow-hidden flex items-center justify-center'>
-                      <FaUser className='text-indigo-500 text-xl' />
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <ProfileImage
+                    profileImageUrl={room.profileImageUrl}
+                    containerClassName='mr-3'
+                    defaultIconTextSize='text-xl'
+                    width='12'
+                    height='12'
+                  />
+                )}
 
                 <div className='flex-1 min-w-0 flex flex-col justify-center'>
                   <div className='flex items-center gap-2'>
