@@ -44,7 +44,7 @@ const EditFriendship = ({
       bottom: 'auto',
       marginRight: '-50%',
       transform: 'translate(-50%, -50%)',
-      width: '60%',
+      width: '90%',
       maxWidth: '400px',
       borderRadius: '16px',
       padding: '24px',
@@ -99,6 +99,10 @@ const EditFriendship = ({
 
   .modal-shake {
     animation: modalShake 0.5s ease-in-out;
+  }
+
+  .ReactModal__Body--open {
+    overflow: hidden;
   }
 `;
   document.head.appendChild(style);
@@ -253,6 +257,7 @@ const EditFriendship = ({
         onRequestClose={closeModal}
         style={modalStyles}
         shouldCloseOnOverlayClick={false}
+        bodyOpenClassName='ReactModal__Body--open'
       >
         <div className='flex flex-col gap-6 relative'>
           {isLoading && (

@@ -36,7 +36,7 @@ const EditMyInfo = ({
       bottom: 'auto',
       marginRight: '-50%',
       transform: 'translate(-50%, -50%)',
-      width: '60%',
+      width: '90%',
       maxWidth: '400px',
       borderRadius: '16px',
       padding: '24px',
