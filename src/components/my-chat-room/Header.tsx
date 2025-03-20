@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FaSearch, FaTimes, FaUserPlus } from 'react-icons/fa';
-
+import { FaCommentMedical, FaSearch, FaTimes } from 'react-icons/fa';
+import FriendListModal from './FriendListModal';
 const Header = ({
   searchInputRef,
   onSearch,
@@ -11,6 +11,7 @@ const Header = ({
   searchInputValue: string;
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isFriendModalOpen, setIsFriendModalOpen] = useState(false);
 
   // 검색창이 열리면 포커스
   useEffect(() => {
@@ -36,8 +37,11 @@ const Header = ({
               <FaSearch className='w-[18px] h-[18px] text-gray-500 group-hover:text-indigo-500 transition-colors duration-200' />
             )}
           </button>
-          <button className='w-9 h-9 rounded-xl hover:bg-indigo-50 flex items-center justify-center transition-all duration-200 group'>
-            <FaUserPlus className='w-[18px] h-[18px] text-gray-500 group-hover:text-indigo-500 transition-colors duration-200' />
+          <button
+            className='w-9 h-9 rounded-xl hover:bg-indigo-50 flex items-center justify-center transition-all duration-200 group'
+            onClick={() => setIsFriendModalOpen(true)}
+          >
+            <FaCommentMedical className='w-[18px] h-[18px] text-gray-500 group-hover:text-indigo-500 transition-colors duration-200' />
           </button>
         </div>
       </div>
@@ -62,6 +66,12 @@ const Header = ({
           </div>
         </div>
       </div>
+
+      {/* 친구 목록 모달 */}
+      <FriendListModal
+        isOpen={isFriendModalOpen}
+        onClose={() => setIsFriendModalOpen(false)}
+      />
     </>
   );
 };

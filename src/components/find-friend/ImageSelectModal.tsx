@@ -1,5 +1,5 @@
 import { FaImage, FaUndo } from 'react-icons/fa';
-import { UpdateMyInfo, UseFlag } from '../../api/api';
+import { UpdateMyInfo, UseFlag } from '../../api/Api';
 
 const ImageSelectModal = ({
   fileInputRef,

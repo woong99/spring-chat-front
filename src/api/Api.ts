@@ -39,7 +39,7 @@ export interface ScrollPagingResponse<T> {
   page: number;
 }
 
-export type PrivateChatRoomId = {
+export type ChatRoomId = {
   chatRoomId: string;
 };
 
@@ -52,6 +52,11 @@ export type MyChatRoom = {
   lastMessage: string;
   lastSendAt: string;
   profileImageUrl: string;
+};
+
+export type CreateGroupChatRoom = {
+  friendIds: number[];
+  chatRoomName: string;
 };
 
 export class Api {
@@ -91,15 +96,20 @@ export class Api {
     return response.data.data;
   }
 
-  static async getPrivateChatRoomId(
-    friendId: number
-  ): Promise<PrivateChatRoomId> {
+  static async getPrivateChatRoomId(friendId: number): Promise<ChatRoomId> {
     const response = await instance.get(`/chat-room/private/${friendId}`);
     return response.data.data;
   }
 
   static async getMyChatRooms(): Promise<MyChatRoom[]> {
     const response = await instance.get('/chat-room/my-list');
+    return response.data.data;
+  }
+
+  static async createGroupChatRoom(
+    data: CreateGroupChatRoom
+  ): Promise<ChatRoomId> {
+    const response = await instance.post('/chat-room/group', data);
     return response.data.data;
   }
 }
