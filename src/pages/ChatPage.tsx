@@ -7,7 +7,9 @@ import api from '../api/axios';
 import { Client } from '@stomp/stompjs';
 import { getCookie } from '../utils/CookieUtils';
 import { FaChevronLeft } from 'react-icons/fa';
-import moment from 'moment';
+import ProfileImage from '../components/common/ProfileImage';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
 
 const ChatPage = () => {
   type Message = {
@@ -15,6 +17,7 @@ const ChatPage = () => {
     nickname: string;
     message: string;
     sendAt: number;
+    profileImageUrl?: string;
   };
 
   type MyInfo = {
@@ -22,6 +25,8 @@ const ChatPage = () => {
     userId: string;
     nickname: string;
   };
+
+  dayjs.locale('ko');
 
   const { roomId } = useParams();
   const stompClient = useRef<Client>(null);
@@ -258,8 +263,8 @@ const ChatPage = () => {
             // 날짜 구분선 표시 여부
             const showDateDivider =
               index === 0 ||
-              moment(message.sendAt).format('YYYY-MM-DD') !=
-                moment(array[index - 1].sendAt).format('YYYY-MM-DD');
+              dayjs(message.sendAt).format('YYYY-MM-DD') !=
+                dayjs(array[index - 1].sendAt).format('YYYY-MM-DD');
 
             // 닉네임 표시 여부
             const isShowNickname =
@@ -271,17 +276,17 @@ const ChatPage = () => {
             const isShowTime =
               index === array.length - 1 ||
               array[index + 1].sender !== message.sender ||
-              moment(array[index + 1].sendAt).format('HH:mm') !==
-                moment(message.sendAt).format('HH:mm') ||
-              moment(array[index + 1].sendAt).format('YYYY-MM-DD') !=
-                moment(message.sendAt).format('YYYY-MM-DD');
+              dayjs(array[index + 1].sendAt).format('HH:mm') !==
+                dayjs(message.sendAt).format('HH:mm') ||
+              dayjs(array[index + 1].sendAt).format('YYYY-MM-DD') !=
+                dayjs(message.sendAt).format('YYYY-MM-DD');
 
             return (
               <Fragment key={index}>
                 {showDateDivider && (
                   <div className='flex justify-center my-4'>
                     <div className='bg-gray-100 rounded-full px-3 py-1 text-xs text-gray-500'>
-                      {moment(message.sendAt).format('YYYY년 M월 D일 dddd')}
+                      {dayjs(message.sendAt).format('YYYY년 M월 D일 dddd')}
                     </div>
                   </div>
                 )}
@@ -290,34 +295,50 @@ const ChatPage = () => {
                     message.sender === myInfo?.id ? 'items-end' : 'items-start'
                   }`}
                 >
+                  {/* 상대방 메시지의 프로필과 닉네임 (조건부 표시) */}
                   {message.sender !== myInfo?.id && isShowNickname && (
-                    <span className='text-sm text-gray-600 mb-1 ml-2'>
-                      {message.nickname}
-                    </span>
+                    <div className='flex items-center'>
+                      <ProfileImage
+                        profileImageUrl={message.profileImageUrl}
+                        defaultIconTextSize='text-xl'
+                        width='10'
+                        height='10'
+                      />
+                      <span className='text-sm text-gray-500 ml-2'>
+                        {message.nickname}
+                      </span>
+                    </div>
                   )}
 
-                  <div className='flex items-end gap-2'>
-                    {message.sender === myInfo?.id && isShowTime && (
-                      <span className='text-xs text-gray-500 mb-1'>
-                        {moment(message.sendAt).format('HH:mm')}
-                      </span>
-                    )}
-                    <div
-                      className={`break-all px-4 py-2 text-gray-800 rounded-2xl
-                        ${
-                          message.sender === myInfo?.id
-                            ? 'bg-indigo-500 text-white rounded-tr-none'
-                            : 'bg-gray-100 rounded-tl-none'
-                        }`}
-                    >
-                      {message.message}
+                  {/* 상대방 메시지 내용 (항상 표시) */}
+                  {message.sender !== myInfo?.id && (
+                    <div className='flex items-end mt-1'>
+                      <div className={`ml-10 flex items-end`}>
+                        <div className='break-all px-3 py-1.5 rounded-lg text-sm bg-gray-100 text-gray-800 rounded-tl-none'>
+                          {message.message}
+                        </div>
+                        {isShowTime && (
+                          <span className='text-xs text-gray-500 ml-1'>
+                            {dayjs(message.sendAt).format('H:mm')}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {message.sender !== myInfo?.id && isShowTime && (
-                      <span className='text-xs text-gray-500 mb-1'>
-                        {moment(message.sendAt).format('HH:mm')}
-                      </span>
-                    )}
-                  </div>
+                  )}
+
+                  {/* 내 메시지 (기존과 동일) */}
+                  {message.sender === myInfo?.id && (
+                    <div className='flex items-end gap-1 justify-end'>
+                      {isShowTime && (
+                        <span className='text-xs text-gray-500'>
+                          {dayjs(message.sendAt).format('H:mm')}
+                        </span>
+                      )}
+                      <div className='break-all px-3 py-1.5 rounded-lg text-sm bg-indigo-500 text-white rounded-tr-none'>
+                        {message.message}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </Fragment>
             );
