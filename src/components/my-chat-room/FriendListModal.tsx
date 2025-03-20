@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Modal from 'react-modal';
 import { FaTimes, FaArrowLeft } from 'react-icons/fa';
 import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
 import { Api, CreateGroupChatRoom, ChatRoomId } from '../../api/Api';
@@ -11,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import SelectFriend from './SelectFriend';
 import EnterChatRoomName from './EnterChatRoomName';
+import CommonModal from '../common/CommonModal';
 
 interface FriendListModalProps {
   isOpen: boolean;
@@ -29,85 +29,6 @@ const FriendListModal: React.FC<FriendListModalProps> = ({
   const [roomName, setRoomName] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const { ref, inView } = useInView();
-
-  // 모달 스타일 설정
-  const modalStyles = {
-    overlay: {
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      backdropFilter: 'blur(4px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      transition: 'all 0.3s ease-in-out',
-    },
-    content: {
-      top: '50%',
-      left: '50%',
-      right: 'auto',
-      bottom: 'auto',
-      marginRight: '-50%',
-      transform: 'translate(-50%, -50%)',
-      width: '90%',
-      maxWidth: '400px',
-      height: '80vh',
-      borderRadius: '16px',
-      padding: '24px',
-      boxShadow:
-        '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-      animation: 'modalPopIn 0.3s ease-out',
-    },
-  };
-
-  // 애니메이션 스타일 추가
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes modalPopIn {
-        0% {
-          opacity: 0;
-          transform: translate(-50%, -48%) scale(0.95);
-        }
-        100% {
-          opacity: 1;
-          transform: translate(-50%, -50%) scale(1);
-        }
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
-          opacity: 1;
-        }
-      }
-
-      .animate-fadeIn {
-        animation: fadeIn 0.3s ease-in-out;
-      }
-
-      .ReactModal__Content--after-open {
-        animation: modalPopIn 0.3s ease-out;
-      }
-
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-      
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      
-      .ReactModal__Body--open {
-        overflow: hidden;
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
 
   // 친구 목록 조회
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
@@ -198,12 +119,12 @@ const FriendListModal: React.FC<FriendListModalProps> = ({
   };
 
   return (
-    <Modal
+    <CommonModal
       isOpen={isOpen}
-      onRequestClose={handleClose}
-      style={modalStyles}
-      shouldCloseOnOverlayClick={false}
-      bodyOpenClassName='ReactModal__Body--open'
+      closeModal={handleClose}
+      customStyles={{
+        content: { height: '80vh' },
+      }}
     >
       <div className='flex flex-col h-full'>
         {(isLoading || isCreating) && (
@@ -282,7 +203,7 @@ const FriendListModal: React.FC<FriendListModalProps> = ({
           </div>
         )}
       </div>
-    </Modal>
+    </CommonModal>
   );
 };
 
