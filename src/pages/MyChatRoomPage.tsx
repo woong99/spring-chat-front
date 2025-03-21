@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { EventSourcePolyfill, MessageEvent } from 'event-source-polyfill';
 import { getCookie } from '../utils/CookieUtils';
-import moment from 'moment';
+import dayjs from 'dayjs';
 import { Api, MyChatRoom } from '../api/Api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { FaUserPlus, FaUsers, FaUser, FaSearch } from 'react-icons/fa';
@@ -116,8 +116,8 @@ const MyChatRoomPage = () => {
   const formatTime = (time: string | null) => {
     if (!time) return '';
 
-    const messageTime = moment(time);
-    const now = moment();
+    const messageTime = dayjs(time);
+    const now = dayjs();
 
     if (messageTime.isSame(now, 'day')) {
       // 오늘
