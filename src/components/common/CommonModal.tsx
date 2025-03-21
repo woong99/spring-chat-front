@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Modal from 'react-modal';
 
 const CommonModal = ({
@@ -43,9 +44,10 @@ const CommonModal = ({
     },
   };
 
-  // 애니메이션 스타일 수정
-  const style = document.createElement('style');
-  style.textContent = `
+  useEffect(() => {
+    // 애니메이션 스타일 수정
+    const style = document.createElement('style');
+    style.textContent = `
   @keyframes modalPopIn {
     0% {
       opacity: 0;
@@ -94,7 +96,11 @@ const CommonModal = ({
     overflow: hidden;
   }
 `;
-  document.head.appendChild(style);
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
 
   return (
     <Modal
