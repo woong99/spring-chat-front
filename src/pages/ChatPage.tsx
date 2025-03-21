@@ -2,7 +2,6 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import { useIntersectionObserver } from '../hooks/useIntersectionObjectser';
 import api from '../api/axios';
 import { Client } from '@stomp/stompjs';
 import { getCookie } from '../utils/CookieUtils';
@@ -10,6 +9,9 @@ import { FaChevronLeft } from 'react-icons/fa';
 import ProfileImage from '../components/common/ProfileImage';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
+import { Api } from '../api/Api';
+import { useQuery } from '@tanstack/react-query';
+import { useInView } from 'react-intersection-observer';
 
 const ChatPage = () => {
   type Message = {
@@ -18,12 +20,6 @@ const ChatPage = () => {
     message: string;
     sendAt: number;
     profileImageUrl?: string;
-  };
-
-  type MyInfo = {
-    id: number;
-    userId: string;
-    nickname: string;
   };
 
   dayjs.locale('ko');
@@ -38,21 +34,23 @@ const ChatPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [text, setText] = useState('');
-  const [myInfo, setMyInfo] = useState<MyInfo>();
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const observeRef = useRef<HTMLDivElement>(null);
   const [scrollHeight, setScrollHeight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { ref, inView } = useInView();
 
-  const onIntersect: IntersectionObserverCallback = (entries) => {
-    const [entry] = entries;
-    if (entry && entry.isIntersecting) {
+  // 내 정보 조회
+  const { data: myInfo } = useQuery({
+    queryKey: ['myInfo'],
+    queryFn: () => Api.getMyInfo(),
+  });
+
+  useEffect(() => {
+    if (inView && hasMore) {
       fetchChatHistory();
     }
-  };
-
-  useIntersectionObserver(observeRef, onIntersect, hasMore);
+  }, [inView, hasMore]);
 
   /**
    * 무한 스크롤 시 스크롤 위치 유지
@@ -83,7 +81,6 @@ const ChatPage = () => {
   }, [isScrolledToBottom]);
 
   useEffect(() => {
-    fetchMyInfo();
     fetchChatHistory();
     stompHandler().connect();
 
@@ -114,7 +111,7 @@ const ChatPage = () => {
         },
       });
 
-      const newMessages = response.data.data.messages;
+      const newMessages = response.data.data.data;
       setMessages((prev) => [...prev, ...newMessages]);
       setHasMore(response.data.data.hasMore);
       setPage((prev) => prev + 1);
@@ -125,17 +122,6 @@ const ChatPage = () => {
       console.error('채팅 내역 조회 실패:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchMyInfo = async () => {
-    try {
-      const response = await api.get('/auth/me');
-      setMyInfo(response.data.data);
-    } catch (error) {
-      console.error(error);
-      alert('로그인 후 이용해주세요.');
-      // navigate('/login');
     }
   };
 
@@ -250,7 +236,7 @@ const ChatPage = () => {
 
       {/* 메시지 영역 */}
       <div className='flex-1 overflow-y-auto px-4' ref={containerRef}>
-        <div ref={observeRef} />
+        <div ref={ref} />
         {/* 로딩 인디케이터 */}
         <div id='scroll-target' className='py-2 text-center'>
           {isLoading && (

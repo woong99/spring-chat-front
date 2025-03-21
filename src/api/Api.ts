@@ -59,6 +59,21 @@ export type CreateGroupChatRoom = {
   chatRoomName: string;
 };
 
+export type ChatRoomUser = {
+  id: number;
+  nickname: string;
+  profileImageUrl?: string;
+  friendshipStatus?: FriendshipStatus;
+};
+
+export type Message = {
+  sender: number;
+  nickname: string;
+  message: string;
+  sendAt: number;
+  profileImageUrl?: string;
+};
+
 export class Api {
   static async getMyInfo(): Promise<AuthInfo> {
     const response = await instance.get('/auth/me');
@@ -110,6 +125,23 @@ export class Api {
     data: CreateGroupChatRoom
   ): Promise<ChatRoomId> {
     const response = await instance.post('/chat-room/group', data);
+    return response.data.data;
+  }
+
+  static async getChatRoomUsers(chatRoomId: string): Promise<ChatRoomUser[]> {
+    const response = await instance.get(`/chat-room/${chatRoomId}/users`);
+    return response.data.data;
+  }
+
+  static async getChatMessages(
+    chatRoomId: string,
+    page: number
+  ): Promise<ScrollPagingResponse<Message>> {
+    const response = await instance.get(`/chat/${chatRoomId}/messages`, {
+      params: {
+        page,
+      },
+    });
     return response.data.data;
   }
 }

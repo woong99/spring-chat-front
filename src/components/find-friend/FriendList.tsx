@@ -6,7 +6,6 @@ import {
   FriendshipStatusFilter,
 } from '../../api/Api';
 import Friend from './Friend';
-import { useIntersectionObserver } from '../../hooks/useIntersectionObjectser';
 import { useRef, useState, useEffect } from 'react';
 import { PulseLoader } from 'react-spinners';
 import {
@@ -17,6 +16,7 @@ import {
   FaChevronDown,
 } from 'react-icons/fa';
 import { useDebouncedCallback } from 'use-debounce';
+import { useInView } from 'react-intersection-observer';
 
 const statusOptions = [
   { value: 'ALL', label: '전체', icon: FaUserFriends },
@@ -25,13 +25,15 @@ const statusOptions = [
 ] as const;
 
 const FriendList = () => {
-  const observeRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [status, setStatus] = useState<FriendshipStatusFilter>('ALL');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { ref, inView } = useInView({
+    threshold: 0.5,
+  });
 
   const {
     data: friendPages,
@@ -85,14 +87,11 @@ const FriendList = () => {
   };
 
   // 무한 스크롤
-  const onIntersect: IntersectionObserverCallback = (entries) => {
-    const [entry] = entries;
-    if (entry && entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  };
-
-  useIntersectionObserver(observeRef, onIntersect, hasNextPage);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (isLoading) {
     return (
@@ -173,7 +172,7 @@ const FriendList = () => {
           ))
         )}
 
-        <div ref={observeRef} className='h-4'>
+        <div ref={ref}>
           {isFetchingNextPage && (
             <div className='flex justify-center items-center py-4'>
               <PulseLoader color='#4f46e5' size={8} />
