@@ -49,3 +49,11 @@ code {
 .custom-scrollbar:active::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.2);
 }
+
+.w-10 {
+  width: 2.5rem;
+}
+
+.h-10 {
+  height: 2.5rem;
+}
