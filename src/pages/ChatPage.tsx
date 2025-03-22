@@ -262,7 +262,10 @@ const ChatPage = () => {
       </div>
 
       {/* 메시지 영역 */}
-      <div className='flex-1 overflow-y-auto px-4' ref={containerRef}>
+      <div
+        className='flex-1 overflow-y-auto custom-scrollbar px-4'
+        ref={containerRef}
+      >
         {/* 1대1 채팅방일 경우 친구 상태에 따른 버튼 랜더링 */}
         {renderFriendshipStatus()}
 

@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import PublicRoute from './components/route/PublicRoute';
@@ -8,6 +8,7 @@ import MyChatRoomPage from './pages/MyChatRoomPage';
 import ChatPage from './pages/ChatPage';
 import FindFriendPage from './pages/FindFriendPage';
 import { ToastContainer } from 'react-toastify';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -20,6 +21,8 @@ function App() {
         closeOnClick
       />
       <Routes>
+        <Route path='/' element={<Navigate to='/friends' replace />} />
+        <Route path='*' element={<NotFoundPage />} />
         <Route
           path='/login'
           element={
@@ -54,7 +57,7 @@ function App() {
             }
           />
           <Route
-            path='/find-friend'
+            path='/friends'
             element={
               <PrivateRoute>
                 <FindFriendPage />

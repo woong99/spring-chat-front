@@ -6,7 +6,7 @@ const FindFriendPage = () => {
   return (
     <div className='max-w-screen-md mx-auto h-full flex flex-col'>
       {/* 헤더 */}
-      <Header title='친구찾기' />
+      <Header title='친구' />
 
       {/* 내 프로필 */}
       <MyInfo />
