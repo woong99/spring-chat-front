@@ -39,10 +39,7 @@ const SignUpPage = () => {
           <div className='mb-3 flex justify-center'>
             <img src='logo.svg' alt='logo' className='w-20 h-20' />
           </div>
-          <h1 className='text-white text-xl font-bold'>Spring Chat</h1>
-          <p className='text-indigo-100 mt-2 text-sm'>
-            새로운 대화의 시작을 함께하세요
-          </p>
+          <h1 className='text-white text-xl font-bold'>Potato Chat</h1>
         </div>
 
         {/* 폼 영역 */}
