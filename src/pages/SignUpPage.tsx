@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { FaUser, FaLock, FaUserTag, FaUserPlus } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const SignUpPage = () => {
   const [userId, setUserId] = useState('');
@@ -10,8 +11,19 @@ const SignUpPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSignup = () => {
+    if (!userId) {
+      toast.error('아이디를 입력해주세요.');
+      return;
+    }
+    if (!nickname) {
+      toast.error('닉네임을 입력해주세요.');
+      return;
+    }
+    if (!password) {
+      toast.error('비밀번호를 입력해주세요.');
+      return;
+    }
     setIsLoading(true);
 
     api
@@ -48,7 +60,7 @@ const SignUpPage = () => {
             회원가입
           </h2>
 
-          <form onSubmit={handleSignup} className='space-y-5'>
+          <div className='space-y-5'>
             <div className='relative'>
               <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                 <FaUser className='h-5 w-5 text-gray-400' />
@@ -98,7 +110,7 @@ const SignUpPage = () => {
             </div>
 
             <button
-              type='submit'
+              onClick={handleSignup}
               disabled={isLoading}
               className='w-full bg-indigo-600 text-white font-medium py-3 px-4 rounded-xl hover:bg-indigo-500 transition-all duration-200 transform hover:translate-y-[-2px] hover:shadow-md flex items-center justify-center gap-2 mt-2'
             >
@@ -111,7 +123,7 @@ const SignUpPage = () => {
                 </>
               )}
             </button>
-          </form>
+          </div>
 
           <div className='mt-8 text-center'>
             <span className='text-sm text-gray-600'>
