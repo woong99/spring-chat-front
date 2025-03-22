@@ -12,6 +12,8 @@ import 'dayjs/locale/ko';
 import { Api } from '../api/Api';
 import { useQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
+import PlusAndBlockButton from '../components/chat/PlusAndBlockButton';
+import ClearBlockButton from '../components/chat/ClearBlockButton';
 
 const ChatPage = () => {
   type Message = {
@@ -27,7 +29,6 @@ const ChatPage = () => {
   const { roomId } = useParams();
   const stompClient = useRef<Client>(null);
 
-  const [chatRoomName, setChatRoomName] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -44,6 +45,12 @@ const ChatPage = () => {
   const { data: myInfo } = useQuery({
     queryKey: ['myInfo'],
     queryFn: () => Api.getMyInfo(),
+  });
+
+  // 채팅방 정보 조회
+  const { data: chatRoomInfo } = useQuery({
+    queryKey: ['chatRoomInfo', roomId],
+    queryFn: () => Api.getChatRoomInfo(roomId as string),
   });
 
   useEffect(() => {
@@ -115,7 +122,6 @@ const ChatPage = () => {
       setMessages((prev) => [...prev, ...newMessages]);
       setHasMore(response.data.data.hasMore);
       setPage((prev) => prev + 1);
-      setChatRoomName(response.data.data.chatRoomName);
       scrollToBottom();
       setIsScrolledToBottom(false);
     } catch (error) {
@@ -219,6 +225,27 @@ const ChatPage = () => {
     };
   };
 
+  // 1대1 채팅방인 경우 친구 상태에 따른 버튼 렌더링
+  const renderFriendshipStatus = () => {
+    if (chatRoomInfo?.chatRoomType === 'PRIVATE') {
+      if (chatRoomInfo?.users[0].friendshipStatus === 'BLOCKED') {
+        return (
+          <ClearBlockButton
+            roomId={roomId as string}
+            chatRoomInfo={chatRoomInfo}
+          />
+        );
+      } else if (chatRoomInfo?.users[0].friendshipStatus === null) {
+        return (
+          <PlusAndBlockButton
+            roomId={roomId as string}
+            chatRoomInfo={chatRoomInfo}
+          />
+        );
+      }
+    }
+  };
+
   return (
     <div className='flex flex-col h-full'>
       {/* 헤더 */}
@@ -230,12 +257,15 @@ const ChatPage = () => {
           <FaChevronLeft size={24} />
         </button>
         <span className='font-semibold flex-1 text-center text-lg'>
-          {chatRoomName}
+          {chatRoomInfo?.chatRoomName}
         </span>
       </div>
 
       {/* 메시지 영역 */}
       <div className='flex-1 overflow-y-auto px-4' ref={containerRef}>
+        {/* 1대1 채팅방일 경우 친구 상태에 따른 버튼 랜더링 */}
+        {renderFriendshipStatus()}
+
         <div ref={ref} />
         {/* 로딩 인디케이터 */}
         <div id='scroll-target' className='py-2 text-center'>
@@ -335,30 +365,37 @@ const ChatPage = () => {
 
       {/* 입력 영역 */}
       <div className='px-4 py-3 border-t bg-white'>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            stompHandler().sendMessage();
-          }}
-          className='flex gap-2'
-        >
-          <input
-            id='text'
-            name='text'
-            type='text'
-            required
-            className='flex-1 rounded-full px-4 py-2 border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none'
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder='메시지를 입력하세요'
-          />
-          <button
-            type='submit'
-            className='rounded-full bg-indigo-600 px-6 py-2 text-white font-medium hover:bg-indigo-500 transition-colors'
+        {chatRoomInfo?.chatRoomType === 'PRIVATE' &&
+        chatRoomInfo?.users[0].friendshipStatus === 'BLOCKED' ? (
+          <div className='text-center py-2 text-sm text-gray-500'>
+            차단된 사용자와는 대화할 수 없습니다.
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              stompHandler().sendMessage();
+            }}
+            className='flex gap-2'
           >
-            전송
-          </button>
-        </form>
+            <input
+              id='text'
+              name='text'
+              type='text'
+              required
+              className='flex-1 rounded-full px-4 py-2 border border-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none'
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder='메시지를 입력하세요'
+            />
+            <button
+              type='submit'
+              className='rounded-full bg-indigo-600 px-6 py-2 text-white font-medium hover:bg-indigo-500 transition-colors'
+            >
+              전송
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

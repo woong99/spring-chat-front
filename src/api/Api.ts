@@ -74,6 +74,13 @@ export type Message = {
   profileImageUrl?: string;
 };
 
+export type ChatRoomInfo = {
+  chatRoomId: string;
+  chatRoomName: string;
+  chatRoomType: ChatRoomType;
+  users: ChatRoomUser[];
+};
+
 export class Api {
   static async getMyInfo(): Promise<AuthInfo> {
     const response = await instance.get('/auth/me');
@@ -128,8 +135,8 @@ export class Api {
     return response.data.data;
   }
 
-  static async getChatRoomUsers(chatRoomId: string): Promise<ChatRoomUser[]> {
-    const response = await instance.get(`/chat-room/${chatRoomId}/users`);
+  static async getChatRoomInfo(chatRoomId: string): Promise<ChatRoomInfo> {
+    const response = await instance.get(`/chat-room/${chatRoomId}`);
     return response.data.data;
   }
 
